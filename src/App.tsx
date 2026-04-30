@@ -10,7 +10,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import { AuthProvider, useAuth } from "@/contexts/Auth.Context";
+import { useAuth } from "@/contexts/Auth.Context";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 // Pages
@@ -70,6 +70,7 @@ import DetailClientPage from "./components/ui/DetailClient";
 import AllProductManageFixingOrderClients from "./pages/PurchaseOrderClients/ManageProblem/AllProductManageFixingOrderClients";
 import DeliveryHistoryDetailReturn from "./pages/PurchaseOrderClients/Driver/Actions/DetailReturn";
 import Finance from "./pages/Finance/Finance";
+import ProductsPreparationPacking from "./pages/Products/ProductsPreparationPacking";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,7 @@ const routeResponsibilities: Record<string, string[]> = {
   // ðŸšš Warehouse / Logistik
   "/incoming": ["WAREHOUSE"],
   "/outgoing": ["WAREHOUSE"],
+  "/preparation-packing": ["WAREHOUSE"],
   "/product-distributions": ["WAREHOUSE"],
 
   // driver
@@ -340,6 +342,10 @@ const App = () => (
                 <Route
                   path="incoming/received"
                   element={<PurchaseOrderReceived />}
+                />
+                <Route
+                  path="preparation-packing"
+                  element={<ProductsPreparationPacking />}
                 />
                 <Route
                   path="incoming/fixing-order-clients"

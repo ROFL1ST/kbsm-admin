@@ -48,17 +48,17 @@ export default function ReviewPurchaseOrderClientDetail() {
         />
       ),
     },
-    {
-      id: "ADJUSTMENT" as const,
-      label: "Pengebalian",
-      icon: FileOutput,
-      component: (
-        <PurchaseOrderClientsAdjusments
-          purchase_order_client_id={location?.state?.purchase_order_client_id}
-          is_warehouse={true}
-        />
-      ),
-    },
+    // {
+    //   id: "ADJUSTMENT" as const,
+    //   label: "Pengebalian",
+    //   icon: FileOutput,
+    //   component: (
+    //     <PurchaseOrderClientsAdjusments
+    //       purchase_order_client_id={location?.state?.purchase_order_client_id}
+    //       is_warehouse={true}
+    //     />
+    //   ),
+    // },
   ];
 
   return (

@@ -325,37 +325,27 @@ export default function StockList() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Kode</TableHead>
-                    <TableHead>Vendor</TableHead>
                     <TableHead>Nama</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead>Unit</TableHead>
-                    {canViewHPP && <TableHead>HPP</TableHead>}
-                    {canViewPrice && <TableHead>Harga Jual</TableHead>}
-                    {canViewPrice && <TableHead>Margin</TableHead>}
-                    {canViewTotalQuantity && (
-                      <TableHead>Total Quantity</TableHead>
-                    )}
-                    {showActions && <TableHead>Aksi</TableHead>}
+                    <TableHead>HPP</TableHead>
+                    <TableHead>Harga Jual</TableHead>
+                    <TableHead>Margin</TableHead>
+                    <TableHead>Total Quantity</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {productsInventory.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.code}</TableCell>
-                      <TableCell>{item.vendor_name}</TableCell>
-                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.product_name}</TableCell>
+                      <TableCell>{item.product_description}</TableCell>
                       <TableCell>{item.unit_code}</TableCell>
-                      {canViewHPP && (
-                        <TableCell>{formatIDR(item.hpp || 0)}</TableCell>
-                      )}
-                      {canViewPrice && (
-                        <TableCell>{formatIDR(item.price || 0)}</TableCell>
-                      )}
-                      {canViewPrice && (
-                        <TableCell>{formatIDR(item.margin || 0)}</TableCell>
-                      )}
-                      {canViewTotalQuantity && (
-                        <TableCell>{item.total_quantity}</TableCell>
-                      )}
+                      <TableCell>{formatIDR(item.hpp || 0)}</TableCell>
+                      <TableCell>{formatIDR(item.price || 0)}</TableCell>
+                      <TableCell>{formatIDR(item.margin || 0)}</TableCell>
+                      <TableCell>{item.total_quantity}</TableCell>
 
                       {showActions && (
                         <TableCell>

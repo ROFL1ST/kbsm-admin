@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/Auth.Context";
 
 /** NAV DATA */
 const salesNavigation = [
-  { title: "Buat Pesanan", href: "/po-clients" },
+  // { title: "Buat Pesanan", href: "/po-clients" },
   { title: "Penagihan Klien", href: "/po-client-collections" },
   { title: "Data Klien", href: "/clients" },
 ];
@@ -36,13 +36,13 @@ const warehouseNavigation = [
 
 const financeNavigation = [
   { title: "Uang Masuk", href: "/finance-in" },
-  { title: "Uang Keluar", href: "/finance-out" },
+  // { title: "Uang Keluar", href: "/finance-out" },
 ];
 
-const purchasingNavigation = [
-  { title: "Buat Pesanan", href: "/po-vendors" },
-  { title: "Vendor", href: "/vendors" },
-];
+// const purchasingNavigation = [
+//   { title: "Buat Pesanan", href: "/po-vendors" },
+//   { title: "Vendor", href: "/vendors" },
+// ];
 
 export function MobileNav() {
   const { user } = useAuth();
@@ -85,13 +85,13 @@ export function MobileNav() {
         items: [],
         requiredResponsibility: ["FINANCE", "COLLECTION"], // Bisa FINANCE atau COLLECTION
       },
-      {
-        key: "purchasing",
-        title: "Purchasing",
-        icon: ShoppingCart,
-        items: purchasingNavigation,
-        requiredResponsibility: "PURCHASING",
-      },
+      // {
+      //   key: "purchasing",
+      //   title: "Purchasing",
+      //   icon: ShoppingCart,
+      //   items: purchasingNavigation,
+      //   requiredResponsibility: "PURCHASING",
+      // },
     ];
 
     // Filter menu berdasarkan responsibility user
@@ -122,8 +122,8 @@ export function MobileNav() {
         );
       case "finance":
         return financeNavigation.some((i) => isActive(i.href));
-      case "purchasing":
-        return purchasingNavigation.some((i) => isActive(i.href));
+      // case "purchasing":
+      //   return purchasingNavigation.some((i) => isActive(i.href));
       default:
         return false;
     }
@@ -360,7 +360,7 @@ export function MobileNav() {
                         )}
 
                         {/* PURCHASING */}
-                        {menu.key === "purchasing" &&
+                        {/* {menu.key === "purchasing" &&
                           purchasingNavigation.map((item) => (
                             <NavLink
                               key={item.href}
@@ -377,7 +377,7 @@ export function MobileNav() {
                               <ShoppingCart className="h-3.5 w-3.5" />
                               {item.title}
                             </NavLink>
-                          ))}
+                          ))} */}
 
                         {/* DEFAULT: sales & admin items */}
                         {menu.key !== "logistik" &&

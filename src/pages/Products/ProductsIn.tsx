@@ -230,7 +230,7 @@ export default function ProductsIn() {
           Distribusi
         </Button> */}
       </div>
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-4">
         <Card
           onClick={() => navigate("/incoming/loading")}
           className="cursor-pointer"
@@ -278,7 +278,7 @@ export default function ProductsIn() {
             <p className="text-xs text-muted-foreground">Return,Refund ...</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
       {/* Filters and Search */}
       <Card className="border-primary/20">
         <CardHeader className="pb-2">
@@ -336,7 +336,7 @@ export default function ProductsIn() {
                       >
                         {item.value}
                       </SelectItem>
-                    )
+                    ),
                   )}
                 </SelectContent>
               </Select>
@@ -423,7 +423,7 @@ export default function ProductsIn() {
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                             <div className="flex-1">
                               <h3 className="font-semibold  text-lg mb-2">
-                                {product.name} ({product.unit_code})
+                                {product.product_name} ({product.unit_code})
                               </h3>
                               <div className="flex flex-wrap items-center gap-4 text-sm ">
                                 <div className="flex items-center gap-2">
@@ -445,7 +445,7 @@ export default function ProductsIn() {
                             <div className="flex-shrink-0">
                               {getDistributionStatusBadge(
                                 product?.status_distribution_code,
-                                product.status_distribution
+                                product.status_distribution,
                               )}
                             </div>
                           </div>

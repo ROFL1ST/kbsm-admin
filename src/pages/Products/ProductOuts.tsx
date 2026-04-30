@@ -11,6 +11,8 @@ import {
   Hash,
   ArrowRightLeft,
   User,
+  Truck,
+  PackageCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +43,11 @@ export default function ProductOuts() {
   const [filterTypeTrx, setFilterTypeTrx] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
+  const [header, setHeader] = useState({
+    total_order_receive_on_progress: 0,
+    total_order_received: 0,
+    order_problem_products: 0,
+  });
   const [request, setRequest] = useState({
     page: 1,
     size: 8,
@@ -217,7 +224,53 @@ export default function ProductOuts() {
           }
         />
       </div>
-
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card
+          onClick={() => navigate("/preparation-packing")}
+          className="cursor-pointer"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Butuh Bantuan</CardTitle>
+            <PackageCheck className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {header?.total_order_received}
+            </div>
+            <p className="text-xs text-muted-foreground">Belum di Packing</p>
+          </CardContent>
+        </Card>
+        <Card
+          onClick={() => navigate("/incoming/loading")}
+          className="cursor-pointer"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Packing</CardTitle>
+            <Truck className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {header?.total_order_receive_on_progress}
+            </div>
+            <p className="text-xs text-muted-foreground">Sudah di Packing</p>
+          </CardContent>
+        </Card>
+        <Card
+          onClick={() => navigate("/incoming/loading")}
+          className="cursor-pointer"
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Dikirim</CardTitle>
+            <Truck className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {header?.total_order_receive_on_progress}
+            </div>
+            <p className="text-xs text-muted-foreground">Sudah di Dikirim</p>
+          </CardContent>
+        </Card>
+      </div>
       {/* Filters and Search */}
       <Card className="border-primary/20">
         <CardHeader className="pb-2">
@@ -275,7 +328,7 @@ export default function ProductOuts() {
                       >
                         {item.value}
                       </SelectItem>
-                    )
+                    ),
                   )}
                 </SelectContent>
               </Select>
@@ -352,7 +405,7 @@ export default function ProductOuts() {
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                             <div className="flex-1">
                               <h3 className="font-semibold  text-lg mb-2">
-                                {product.name} ({product.unit_code})
+                                {product.product_name} ({product.unit_code})
                               </h3>
                               <div className="flex flex-wrap items-center gap-4 text-sm ">
                                 <div className="flex items-center gap-2">
@@ -374,7 +427,7 @@ export default function ProductOuts() {
                             <div className="flex-shrink-0">
                               {getDistributionStatusBadge(
                                 product?.status_distribution_code,
-                                product.status_distribution
+                                product.status_distribution,
                               )}
                             </div>
                           </div>

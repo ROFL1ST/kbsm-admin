@@ -36,6 +36,12 @@ const mainNavigation = [
     icon: LayoutDashboard,
     description: "Overview & Analytics",
   },
+  {
+    title: "Inventori Barang",
+    href: "/stock-list",
+    icon: Package,
+    description: "Kelola Inventori",
+  },
 ];
 
 const warehouseNavigation = [
@@ -51,12 +57,6 @@ const warehouseNavigation = [
     icon: TrendingDown,
     description: "Demand Management",
   },
-  {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
-  },
   // {
   //   title: "Produk Distribusi",
   //   href: "/product-distributions",
@@ -64,32 +64,26 @@ const warehouseNavigation = [
   //   description: "Product Distributions",
   // },
 ];
-const salesNavigation = [
-  {
-    title: "Buat Pesanan",
-    href: "/po-clients",
-    icon: TrendingUp,
-    description: "Clients Order",
-  },
-  {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
-  },
-  {
-    title: "Penagihan Klien",
-    href: "/po-client-collections",
-    icon: Users,
-    description: "Client Collections",
-  },
-  {
-    title: "Data Klien",
-    href: "/clients",
-    icon: Users,
-    description: "Client Management",
-  },
-];
+// const salesNavigation = [
+//   {
+//     title: "Buat Pesanan",
+//     href: "/po-clients",
+//     icon: TrendingUp,
+//     description: "Clients Order",
+//   },
+//   {
+//     title: "Penagihan Klien",
+//     href: "/po-client-collections",
+//     icon: Users,
+//     description: "Client Collections",
+//   },
+//   {
+//     title: "Data Klien",
+//     href: "/clients",
+//     icon: Users,
+//     description: "Client Management",
+//   },
+// ];
 const adminNavigation = [
   {
     title: "Pesanan Klien",
@@ -104,10 +98,10 @@ const adminNavigation = [
     description: "Kelola Pengguna",
   },
   {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
+    title: "Pengaturan",
+    href: "/settings",
+    icon: Settings,
+    description: "System Settings",
   },
 ];
 
@@ -124,62 +118,50 @@ const financeNavigation = [
     icon: CreditCard,
     description: "Expense Tracking",
   },
-  {
-    title: "Pesanan Perusahaan",
-    href: "/po-vendors-received",
-    icon: TrendingUp,
-    description: "Vendor Order received",
-  },
-  {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
-  },
+  // {
+  //   title: "Pesanan Perusahaan",
+  //   href: "/po-vendors-received",
+  //   icon: TrendingUp,
+  //   description: "Vendor Order received",
+  // },
 ];
-const purchasingNavigation = [
-  {
-    title: "Buat Pesanan",
-    href: "/po-vendors",
-    icon: TrendingUp,
-    description: "Vendor Order",
-  },
-  {
-    title: "supplier",
-    href: "/vendors",
-    icon: TrendingUp,
-    description: "Data Vendor",
-  },
-  {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
-  },
-];
+// const purchasingNavigation = [
+//   {
+//     title: "Buat Pesanan",
+//     href: "/po-vendors",
+//     icon: TrendingUp,
+//     description: "Vendor Order",
+//   },
+//   {
+//     title: "supplier",
+//     href: "/vendors",
+//     icon: TrendingUp,
+//     description: "Data Vendor",
+//   },
+//   {
+//     title: "Inventori Barang",
+//     href: "/stock-list",
+//     icon: Package,
+//     description: "Kelola Inventori",
+//   },
+// ];
 
-const managementNavigation = [
-  {
-    title: "Laporan",
-    href: "/reports",
-    icon: FileText,
-    description: "Export & Analytics",
-  },
-  {
-    title: "Pengaturan",
-    href: "/settings",
-    icon: Settings,
-    description: "System Settings",
-  },
-];
-const driverNavigation = [
-  {
-    title: "Pengiriman",
-    href: "/activity-driver",
-    icon: Car,
-    description: "Activity Delivery",
-  },
-];
+// const managementNavigation = [
+//   {
+//     title: "Laporan",
+//     href: "/reports",
+//     icon: FileText,
+//     description: "Export & Analytics",
+//   },
+// ];
+// const driverNavigation = [
+//   {
+//     title: "Pengiriman",
+//     href: "/activity-driver",
+//     icon: Car,
+//     description: "Activity Delivery",
+//   },
+// ];
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
@@ -303,7 +285,7 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
           {/* Finance */}
-          {hasResponsibility("PURCHASING") && (
+          {/* {hasResponsibility("PURCHASING") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Purchasing</SidebarGroupLabel>}
               <SidebarGroupContent>
@@ -326,7 +308,7 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          )}
+          )} */}
           {/* Management - Only for admin/manager */}
           {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
           {/* <SidebarGroup>
@@ -352,7 +334,7 @@ export function AppSidebar() {
           {/* )} */}
           {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
           {/* driver */}
-          {hasResponsibility("DRIVER") && (
+          {/* {hasResponsibility("DRIVER") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Driver</SidebarGroupLabel>}
               <SidebarGroupContent>
@@ -375,9 +357,9 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          )}
+          )} */}
           {/* Sales */}
-          {hasResponsibility("SALES") && (
+          {/* {hasResponsibility("SALES") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Sales</SidebarGroupLabel>}
               <SidebarGroupContent>
@@ -400,7 +382,7 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          )}
+          )} */}
           {/* )} */}
           {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
           {/* Admin */}

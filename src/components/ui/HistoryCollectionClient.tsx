@@ -164,7 +164,7 @@ const HistoryItem = memo(
                       (
                       {formatDate(
                         String(item.finance_callback_at),
-                        "dd/MM/yy HH:mm"
+                        "dd/MM/yy HH:mm",
                       )}
                       )
                     </span>
@@ -187,7 +187,7 @@ const HistoryItem = memo(
                 Terakhir diupdate:{" "}
                 {formatDate(
                   String(item.updated_at || item.created_at),
-                  "dd/MM/yyyy"
+                  "dd/MM/yyyy",
                 )}
               </span>
             </div>
@@ -245,7 +245,7 @@ const HistoryItem = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 HistoryItem.displayName = "HistoryItem";
@@ -400,7 +400,7 @@ const CollectionForm = memo(
         </Card>
       </div>
     );
-  }
+  },
 );
 
 CollectionForm.displayName = "CollectionForm";
@@ -432,7 +432,7 @@ const HistoryDetail = memo(({ selectedHistory, onBack }) => {
               <p>
                 {formatDate(
                   String(selectedHistory.created_at),
-                  "dd/MM/yyyy HH:mm"
+                  "dd/MM/yyyy HH:mm",
                 )}
               </p>
             </div>
@@ -494,7 +494,7 @@ export const HistoryCollectionClient = ({
   // Permission checks dengan useMemo
   const isFinance = useMemo(
     () => user?.responsibilities?.some((role) => role.code === "FINANCE"),
-    [user]
+    [user],
   );
 
   const [isFeedBackOrderVendorModalOpen, setIsFeedBackOrderVendorModalOpen] =
@@ -552,7 +552,7 @@ export const HistoryCollectionClient = ({
             paid: 0,
             status_trx_code: null,
             status: null,
-          }
+          },
         );
       }
     } catch (error) {
@@ -600,7 +600,7 @@ export const HistoryCollectionClient = ({
         [field]: value,
       }));
     },
-    []
+    [],
   );
 
   const handlePhotoUpload = useCallback(
@@ -635,7 +635,7 @@ export const HistoryCollectionClient = ({
         reader.readAsDataURL(file);
       }
     },
-    [handleInputChange, toast]
+    [handleInputChange, toast],
   );
 
   const handleDownloadPhoto = useCallback(() => {
@@ -722,7 +722,7 @@ export const HistoryCollectionClient = ({
       setIsEditMode(true);
       setShowHistoryDetail(false);
     },
-    [purchase_order_client_id]
+    [purchase_order_client_id],
   );
 
   const handleViewHistory = useCallback((item) => {
@@ -751,7 +751,7 @@ export const HistoryCollectionClient = ({
         });
       }
     },
-    [deletePurchaseOrderCollections, toast, handleFetch]
+    [deletePurchaseOrderCollections, toast, handleFetch],
   );
 
   const resetForm = useCallback(() => {
@@ -851,7 +851,7 @@ export const HistoryCollectionClient = ({
         </CardContent>
       </Card>
     ),
-    [invoiceInfo, progressPercentage, remainingBalance]
+    [invoiceInfo, progressPercentage, remainingBalance],
   );
 
   return (

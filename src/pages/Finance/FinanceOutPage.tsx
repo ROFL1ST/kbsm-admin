@@ -103,10 +103,10 @@ export default function FinanceOutPage() {
 
   const fetchData = async () => {
     try {
-      const refund = await getAllPurchaseOrderClientProblemProduct({
-        adjustment_type: "REFUND",
-        is_finance_out_page: true,
-      });
+      // const refund = await getAllPurchaseOrderClientProblemProduct({
+      //   adjustment_type: "REFUND",
+      //   is_finance_out_page: true,
+      // });
 
       const response = await getFinance(request);
       const res = await getCategoryCode({
@@ -193,11 +193,11 @@ export default function FinanceOutPage() {
             <div className="text-2xl font-bold text-primary">
               {formatIDR(header?.total_expense)}
             </div>
-            <span className="text-xs">Include PPN</span>
+            <span className="text-xs">Pengeluaran Perusahaan</span>
           </CardContent>
         </Card>
       </div>
-      {purchaseOrderProblem.length > 0 && <PurchaseOrderRefund />}
+      {/* {purchaseOrderProblem.length > 0 && <PurchaseOrderRefund />} */}
       {/* Filters and Search */}
       <Card>
         <CardHeader className="space-y-5">
@@ -492,7 +492,7 @@ export default function FinanceOutPage() {
                               {pageNum}
                             </Button>
                           );
-                        }
+                        },
                       )}
                     </div>
 

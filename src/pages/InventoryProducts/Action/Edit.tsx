@@ -39,7 +39,7 @@ import { useAuth } from "@/contexts/Auth.Context";
 import { UomModal } from "./UomModal";
 import { FormStateValueCode, useParameter } from "@/contexts/Parameter.context";
 import { ConfirmModal } from "@/components/ui/ConfimModal";
-import { useVendors } from "@/contexts/Vendors.Context";
+// import { useVendors } from "@/contexts/Vendors.Context";
 import {
   Command,
   CommandEmpty,
@@ -190,7 +190,7 @@ export default function EditInventoryStock() {
     updateValueCode,
     valueCode,
   } = useParameter();
-  const { vendors, getVendors } = useVendors();
+  // const { vendors, getVendors } = useVendors();
   const handleCategorySubmit = async () => {
     try {
       const newForm = {
@@ -295,27 +295,29 @@ export default function EditInventoryStock() {
       });
     }
   };
-  const handleGetVendors = async (params) => {
-    getVendors(params);
-  };
+  // const handleGetVendors = async (params) => {
+  //   getVendors(params);
+  // };
   useEffect(() => {
     getValueCode({
       size: 1000,
       page: 1,
       lookup_code: "UOM",
     });
-    handleGetVendors({
-      page: 1,
-      size: 10,
-      search: debouncedSearch,
-    });
+    // handleGetVendors({
+    //   page: 1,
+    //   size: 10,
+    //   search: debouncedSearch,
+    // });
   }, [debouncedSearch]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="w-full md:w-4/5">
-          <h1 className="text-3xl font-bold text-foreground">{form?.name}</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            {form?.product_name}
+          </h1>
           <p className="text-muted-foreground">kelola produk</p>
         </div>
 
@@ -479,7 +481,7 @@ export default function EditInventoryStock() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2 w-full">
+              {/* <div className="space-y-2 w-full">
                 <label>Vendor</label>
                 <Select
                   value={form.vendor_id?.toString() || ""}
@@ -497,7 +499,6 @@ export default function EditInventoryStock() {
                     <SelectValue placeholder="Pilih Vendor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Search Input */}
                     <div className="p-2">
                       <Input
                         placeholder="Cari Vendor..."
@@ -507,7 +508,7 @@ export default function EditInventoryStock() {
                       />
                     </div>
 
-                    {/* Vendor List */}
+                    
                     {vendors.map((v) => (
                       <SelectItem key={v.id} value={v.id.toString()}>
                         {v.name}
@@ -523,7 +524,7 @@ export default function EditInventoryStock() {
                     )}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
                 <Label htmlFor="total_quantity">

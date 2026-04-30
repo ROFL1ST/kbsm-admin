@@ -1,7 +1,6 @@
 import API from "@/config/API";
 import { useToast } from "@/hooks/use-toast";
 import { ApiResponse, Pagination } from "@/types";
-import { StripTypeScriptTypesOptions } from "module";
 import React, { createContext, useContext, useState } from "react";
 
 /** ===================== INTERFACES ===================== */
@@ -186,13 +185,17 @@ export interface PurchaseOrderClientDetail {
   id: string;
   client_id: number;
   name: string;
+  email: string;
   purchase_order_client_code: string;
+  payment_type: string;
   progress_type_code: string;
   input_date: string;
   address: string;
   due_date: string;
   send_date: string;
+  ongkir: number;
   total: number;
+  final_total: number;
   type: string;
   problem_product_take_by: string;
   is_problem_products: string;
@@ -209,6 +212,7 @@ export interface PurchaseOrderClientDetail {
   products: PurchaseOrderProductDetail[];
   refund: { total_refund: number };
   return: PurchaseOrderProblem;
+  shipping: PurchaseOrderShipping;
 }
 
 export interface PurchaseOrderProductDetail {
@@ -244,6 +248,39 @@ export interface PurchaseOrderProductDetail {
   product_name: string;
   description: string;
 }
+interface PurchaseOrderShipping {
+  id: number;
+  purchase_order_client_id: string;
+  delivery: string;
+  ongkir: number;
+  code: string;
+  service: string;
+  description: string;
+  etd: string;
+  user_id: string;
+  receiver_name: string;
+  phone_number: string;
+  address: string;
+  label: string;
+  province_id: number;
+  city_id: number;
+  district_id: number;
+  subdistrict_id: number;
+  province_name: string;
+  city_name: string;
+  district_name: string;
+  subdistrict_name: string;
+  postal_code: string;
+  is_default: boolean;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  resi: string | null;
+}
+
 export interface PurchaseOrderProblem {
   id: string;
   purchase_order_client_id: string;
@@ -292,7 +329,7 @@ interface PurchaseOrderClientsContextType {
   purchaseOrderProblem: PurchaseOrderProblem[];
   getClients: () => Promise<ApiResponse<Client[]> | null>;
   printTravelDocument: (
-    params: PrintTravelDocumentKey
+    params: PrintTravelDocumentKey,
   ) => Promise<ApiResponse<any>>;
   getAssets: () => Promise<ApiResponse<AssetsResponse> | any>;
 
@@ -300,74 +337,74 @@ interface PurchaseOrderClientsContextType {
 
   getPurchaseOrderClients: () => Promise<ApiResponse<any> | null>;
   getPurchaseOrderDeliveryHistories: (
-    params: PurchaseOrderClientDeliveryHistoriesKey
+    params: PurchaseOrderClientDeliveryHistoriesKey,
   ) => Promise<ApiResponse>;
   pagination: Pagination;
   deliveryHistories: DeliveryHistories[];
   createPurchaseOrderClient: (
-    data: FormStatePurchaseOrderClient
+    data: FormStatePurchaseOrderClient,
   ) => Promise<ApiResponse<any> | null>;
   handleDetailPurchaseOrderClient: (
-    data: PurchaseOrderClientDetailKey
+    data: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse | null>;
   getValidationStockByID: (
-    data: PurchaseOrderClientDetailKey
+    data: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse | null>;
   updatePurchaseOrderClient: (
-    data: FormStatePurchaseOrderClient
+    data: FormStatePurchaseOrderClient,
   ) => Promise<ApiResponse<any> | null>;
   deletePurchaseOrderClient: (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse<any> | null>;
   getOnePurchaseOrderClient: (id: number) => Promise<ApiResponse<any> | null>;
   getPurchaseOrderDeliveryHistoryDetail: (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse>;
   updatePurchaseOrderDeliveryHistoryDetail: (
-    params: DeliveryUpdateStatus
+    params: DeliveryUpdateStatus,
   ) => Promise<ApiResponse>;
   deliveryHistoryDetail: DeliveryHistoryDetail | null;
   deletePurchaseOrderCollections: (
-    params: PurchaseOrderCollectionKey
+    params: PurchaseOrderCollectionKey,
   ) => Promise<ApiResponse>;
   updatePurchaseOrderCollections: (
-    params: PurchaseOrderClientCollectionFormState
+    params: PurchaseOrderClientCollectionFormState,
   ) => Promise<ApiResponse>;
   createPurchaseOrderCollections: (
-    params: PurchaseOrderClientCollectionFormState
+    params: PurchaseOrderClientCollectionFormState,
   ) => Promise<ApiResponse>;
   getPurchaseOrderCollections: (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse>;
   feedbackOrderClientCollection: (
-    params: PurchaseOrderCollectionFeedbackKey
+    params: PurchaseOrderCollectionFeedbackKey,
   ) => Promise<ApiResponse>;
   purchaseOrderClientProblemProducts: (
-    params: UpdateProblemProductsRequest
+    params: UpdateProblemProductsRequest,
   ) => Promise<ApiResponse>;
   getPurchaseOrderClientProblemProduct: (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse>;
   deletePurchaseOrderClientProblemProduct: (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ) => Promise<ApiResponse>;
   updatePurchaseOrderClientRefundProduct: (
-    params: PurchaseOrderClientRefundKey
+    params: PurchaseOrderClientRefundKey,
   ) => Promise<ApiResponse>;
   getPurchaseOrderClientProducts: (
-    params: PurchaseOrderClientProductsKey
+    params: PurchaseOrderClientProductsKey,
   ) => Promise<ApiResponse>;
   createPurchaseOrderClientProblemProduct: (
-    params: CreatePurchaseOrderClientProblemKey
+    params: CreatePurchaseOrderClientProblemKey,
   ) => Promise<ApiResponse>;
   updatePurchaseOrderClientProblemProduct: (
-    params: UpdatePurchaseOrderClientProblemKey
+    params: UpdatePurchaseOrderClientProblemKey,
   ) => Promise<ApiResponse>;
   getPurchaseOrderClientProblemProductDetail: (
-    params: GetDetailPurchaseOrderClientProblemKey
+    params: GetDetailPurchaseOrderClientProblemKey,
   ) => Promise<ApiResponse>;
   getAllPurchaseOrderClientProblemProduct: (
-    params: GetAllPurchaseOrderClientProblemKey
+    params: GetAllPurchaseOrderClientProblemKey,
   ) => void;
 }
 
@@ -380,7 +417,7 @@ export const usePurchaseOrderClients = () => {
   const context = useContext(PurchaseOrderClientsContext);
   if (!context) {
     throw new Error(
-      "usePurchaseOrderClients must be used within a PurchaseOrderClientsProvider"
+      "usePurchaseOrderClients must be used within a PurchaseOrderClientsProvider",
     );
   }
   return context;
@@ -425,7 +462,7 @@ export const PurchaseOrderClientsProvider: React.FC<{
   };
 
   const printTravelDocument = async (
-    params: PrintTravelDocumentKey
+    params: PrintTravelDocumentKey,
   ): Promise<ApiResponse> => {
     // buka window nanti saja setelah validasi berhasil
     try {
@@ -435,7 +472,7 @@ export const PurchaseOrderClientsProvider: React.FC<{
         {
           params,
           responseType: "blob",
-        }
+        },
       );
       setIsLoading(false);
       const blob = response.data;
@@ -470,7 +507,7 @@ export const PurchaseOrderClientsProvider: React.FC<{
   const getAssets = async (): Promise<ApiResponse<AssetsResponse> | null> => {
     try {
       const response = await API.get<ApiResponse<AssetsResponse>>(
-        "/purchase-order/clients/assets"
+        "/purchase-order/clients/assets",
       );
 
       if (response?.data?.status) {
@@ -487,14 +524,14 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getValidationStockByID = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse | null> => {
     try {
       const response = await API.get<ApiResponse>(
         "/purchase-order/clients/description/travel-document",
         {
           params: params,
-        }
+        },
       );
 
       return response.data;
@@ -505,12 +542,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
   };
 
   const createClient = async (
-    data: Partial<Client>
+    data: Partial<Client>,
   ): Promise<ApiResponse<Client> | null> => {
     try {
       const response = await API.post<ApiResponse<Client>>(
         "/purchase-order/clients",
-        data
+        data,
       );
       return response.data;
     } catch (error) {
@@ -524,7 +561,7 @@ export const PurchaseOrderClientsProvider: React.FC<{
     async (): Promise<ApiResponse<any> | null> => {
       try {
         const response = await API.get<ApiResponse<any>>(
-          "/purchase-order-clients"
+          "/purchase-order-clients",
         );
         return response.data;
       } catch (error) {
@@ -534,13 +571,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     };
 
   const createPurchaseOrderClient = async (
-    data: FormStatePurchaseOrderClient
+    data: FormStatePurchaseOrderClient,
   ): Promise<ApiResponse<any> | null> => {
     try {
       const response = await API.post<ApiResponse<any>>(
         "/purchase-order/clients",
         data,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       return response.data;
     } catch (error) {
@@ -549,12 +586,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const handleDetailPurchaseOrderClient = async (
-    data: PurchaseOrderClientDetailKey
+    data: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse | null> => {
     try {
       const response = await API.get<ApiResponse>(
         "/purchase-order/clients/detail",
-        { params: data, withCredentials: true }
+        { params: data, withCredentials: true },
       );
       setdetailPurchaseOrderClient(response.data.data);
       return response.data;
@@ -564,13 +601,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const updatePurchaseOrderClient = async (
-    data: FormStatePurchaseOrderClient
+    data: FormStatePurchaseOrderClient,
   ): Promise<ApiResponse<any> | null> => {
     try {
       console.log(data, "req");
       const response = await API.patch<ApiResponse<any>>(
         "/purchase-order/clients",
-        data
+        data,
       );
       console.log(response.data, "res");
       return response.data;
@@ -580,14 +617,14 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const deletePurchaseOrderClient = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse<any> | null> => {
     try {
       const response = await API.delete<ApiResponse<any>>(
         `/purchase-order/clients`,
         {
           params: params,
-        }
+        },
       );
       return response.data;
     } catch (error) {
@@ -597,11 +634,11 @@ export const PurchaseOrderClientsProvider: React.FC<{
   };
 
   const getOnePurchaseOrderClient = async (
-    id: number
+    id: number,
   ): Promise<ApiResponse<any> | null> => {
     try {
       const response = await API.get<ApiResponse<any>>(
-        `/purchase-order-clients/${id}`
+        `/purchase-order-clients/${id}`,
       );
       return response.data;
     } catch (error) {
@@ -610,12 +647,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderDeliveryHistories = async (
-    params: PurchaseOrderClientDeliveryHistoriesKey
+    params: PurchaseOrderClientDeliveryHistoriesKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.get<ApiResponse>(
         `/purchase-order/clients/delivery-histories`,
-        { params: params }
+        { params: params },
       );
       setPagination({
         total_data: response.data.data.total_data,
@@ -628,12 +665,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderDeliveryHistoryDetail = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.get<ApiResponse>(
         `/purchase-order/clients/delivery-history/detail`,
-        { params: params }
+        { params: params },
       );
       console.log(response, "sibal");
       setDeliveryHistoryDetail(response.data.data);
@@ -643,12 +680,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const updatePurchaseOrderDeliveryHistoryDetail = async (
-    params: DeliveryUpdateStatus
+    params: DeliveryUpdateStatus,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.patch<ApiResponse>(
         `/purchase-order/clients/delivery-history/detail`,
-        params
+        params,
       );
       return response.data;
     } catch (error) {
@@ -656,14 +693,14 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const deletePurchaseOrderCollections = async (
-    params: PurchaseOrderCollectionKey
+    params: PurchaseOrderCollectionKey,
   ): Promise<ApiResponse> => {
     try {
       setIsLoading(true);
 
       const response = await API.delete<ApiResponse>(
         `/purchase-order/clients/collection`,
-        { params: params }
+        { params: params },
       );
       setIsLoading(false);
 
@@ -673,13 +710,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const updatePurchaseOrderCollections = async (
-    params: PurchaseOrderClientCollectionFormState
+    params: PurchaseOrderClientCollectionFormState,
   ): Promise<ApiResponse> => {
     try {
       setIsLoading(true);
       const response = await API.patch<ApiResponse>(
         `/purchase-order/clients/collection`,
-        params
+        params,
       );
       setIsLoading(false);
       return response.data;
@@ -688,14 +725,14 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const createPurchaseOrderCollections = async (
-    params: PurchaseOrderClientCollectionFormState
+    params: PurchaseOrderClientCollectionFormState,
   ): Promise<ApiResponse> => {
     try {
       setIsLoading(true);
 
       const response = await API.post<ApiResponse>(
         `/purchase-order/clients/collection`,
-        params
+        params,
       );
       setIsLoading(false);
 
@@ -705,12 +742,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderCollections = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.get<ApiResponse>(
         `/purchase-order/clients/collection`,
-        { params: params }
+        { params: params },
       );
       return response.data;
     } catch (error) {
@@ -718,12 +755,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const feedbackOrderClientCollection = async (
-    params: PurchaseOrderCollectionFeedbackKey
+    params: PurchaseOrderCollectionFeedbackKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.patch<ApiResponse>(
         "/purchase-order/clients/collection-verification",
-        params
+        params,
       );
       return response.data;
     } catch (e) {
@@ -732,12 +769,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const purchaseOrderClientProblemProducts = async (
-    params: UpdateProblemProductsRequest
+    params: UpdateProblemProductsRequest,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.post<ApiResponse>(
         "/purchase-order/clients/problem-product",
-        params
+        params,
       );
       return response.data;
     } catch (e) {
@@ -746,12 +783,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderClientProblemProduct = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.get<ApiResponse>(
         "/purchase-order/clients/problem-products",
-        { params: params }
+        { params: params },
       );
       return response.data;
     } catch (e) {
@@ -760,12 +797,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const deletePurchaseOrderClientProblemProduct = async (
-    params: PurchaseOrderClientDetailKey
+    params: PurchaseOrderClientDetailKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.delete<ApiResponse>(
         "/purchase-order/clients/problem-product",
-        { params: params }
+        { params: params },
       );
       return response.data;
     } catch (e) {
@@ -774,12 +811,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const createPurchaseOrderClientProblemProduct = async (
-    params: CreatePurchaseOrderClientProblemKey
+    params: CreatePurchaseOrderClientProblemKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.post<ApiResponse>(
         "/purchase-order/clients/problem-product",
-        params
+        params,
       );
       return response.data;
     } catch (e) {
@@ -788,12 +825,12 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const updatePurchaseOrderClientProblemProduct = async (
-    params: UpdatePurchaseOrderClientProblemKey
+    params: UpdatePurchaseOrderClientProblemKey,
   ): Promise<ApiResponse> => {
     try {
       const response = await API.patch<ApiResponse>(
         "/purchase-order/clients/problem-product",
-        params
+        params,
       );
       return response.data;
     } catch (e) {
@@ -802,13 +839,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const updatePurchaseOrderClientRefundProduct = async (
-    params: PurchaseOrderClientRefundKey
+    params: PurchaseOrderClientRefundKey,
   ): Promise<ApiResponse> => {
     setIsLoading(true);
     try {
       const response = await API.patch<ApiResponse>(
         "/purchase-order/clients/refund",
-        params
+        params,
       );
       setIsLoading(false);
       return response.data;
@@ -818,13 +855,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderClientProducts = async (
-    params: PurchaseOrderClientProductsKey
+    params: PurchaseOrderClientProductsKey,
   ): Promise<ApiResponse> => {
     setIsLoading(true);
     try {
       const response = await API.get<ApiResponse>(
         "/purchase-order/clients/products",
-        { params: params }
+        { params: params },
       );
       setIsLoading(false);
       return response.data;
@@ -834,13 +871,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getPurchaseOrderClientProblemProductDetail = async (
-    params: GetDetailPurchaseOrderClientProblemKey
+    params: GetDetailPurchaseOrderClientProblemKey,
   ): Promise<ApiResponse> => {
     setIsLoading(true);
     try {
       const response = await API.get<ApiResponse>(
         "/purchase-order/clients/problem-product/detail",
-        { params: params }
+        { params: params },
       );
       setIsLoading(false);
       return response.data;
@@ -850,13 +887,13 @@ export const PurchaseOrderClientsProvider: React.FC<{
     }
   };
   const getAllPurchaseOrderClientProblemProduct = async (
-    params: GetAllPurchaseOrderClientProblemKey
+    params: GetAllPurchaseOrderClientProblemKey,
   ) => {
     try {
       setIsLoading(true);
       const res = await API.get(
         `/purchase-order/clients/problem-products/all`,
-        { params: params }
+        { params: params },
       );
       setIsLoading(false);
       setPurchaseOrderProblem(res.data.data);

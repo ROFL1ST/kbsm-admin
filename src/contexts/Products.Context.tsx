@@ -26,6 +26,7 @@ export interface ProductDistributionFilter {
 interface ProductDistributions {
   code: string;
   name: string;
+  product_name: string;
   exx: number;
   quantity: number;
   status_distribution: string;
@@ -225,6 +226,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await API.get("/products/distributions", {
         params: params,
       });
+      console.log(response?.data, "oke");
       if (response?.data?.status) {
         setPagination({
           total_page: response?.data?.data?.total_page,

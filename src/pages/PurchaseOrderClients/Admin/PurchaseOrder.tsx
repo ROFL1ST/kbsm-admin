@@ -79,7 +79,7 @@ export default function ReviewPurchaseOrderClients() {
   const fetchPurchaseOrderClient = async (params) => {
     try {
       const { data } = await API.get(
-        `/purchase-order/clients?page=${params.page}&size=${params.size}&progress_type_code=${params.progress_type_code}&status_trx_code=${params.status_trx_code}&search=${params.search}&payment_method_code=${params.payment_method_code}&start_date=${params.start_date}&end_date=${params.end_date}`
+        `/purchase-order/clients?page=${params.page}&size=${params.size}&progress_type_code=${params.progress_type_code}&status_trx_code=${params.status_trx_code}&search=${params.search}&payment_method_code=${params.payment_method_code}&start_date=${params.start_date}&end_date=${params.end_date}`,
       );
       setPagination({
         total_data: data?.data?.total_data,
@@ -252,7 +252,7 @@ export default function ReviewPurchaseOrderClients() {
               </Select>
 
               {/* Transaction Type */}
-              <Select
+              {/* <Select
                 value={request.payment_method_code}
                 onValueChange={(e) =>
                   setRequest({ ...request, payment_method_code: e })
@@ -272,7 +272,7 @@ export default function ReviewPurchaseOrderClients() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
 
               {/* Transaction Status */}
               <Select
@@ -330,10 +330,10 @@ export default function ReviewPurchaseOrderClients() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama Client</TableHead>
+                    <TableHead>Nama Customer</TableHead>
                     <TableHead>Kode</TableHead>
                     <TableHead>Tanggal Pesan</TableHead>
-                    <TableHead>Tanggal Kirim</TableHead>
+                    {/* <TableHead>Tanggal Kirim</TableHead> */}
                     <TableHead>Status</TableHead>
                     <TableHead>Tipe Transaksi</TableHead>
                     <TableHead>Status Transaksi</TableHead>
@@ -349,7 +349,7 @@ export default function ReviewPurchaseOrderClients() {
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={item.avatar || undefined} />
                             <AvatarFallback className="bg-gradient-primary text-white">
-                              {item.name.charAt(0)}
+                              {item?.name?.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{item.name}</span>
@@ -362,9 +362,9 @@ export default function ReviewPurchaseOrderClients() {
                       <TableCell className="text-sm">
                         {formatDate(item.input_date)}
                       </TableCell>
-                      <TableCell className="text-sm">
+                      {/* <TableCell className="text-sm">
                         {formatDate(item.send_date)}
-                      </TableCell>
+                      </TableCell> */}
 
                       <TableCell>
                         {getStatusBadge(item.type, item.type_badge)}
@@ -492,7 +492,7 @@ export default function ReviewPurchaseOrderClients() {
                               {pageNum}
                             </Button>
                           );
-                        }
+                        },
                       )}
                     </div>
 

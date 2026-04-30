@@ -196,7 +196,7 @@ export default function FinanceInPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pajak</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
@@ -206,7 +206,7 @@ export default function FinanceInPage() {
               {formatIDR(header?.total_tax_invoice)}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Filters and Search */}
@@ -503,7 +503,7 @@ export default function FinanceInPage() {
                               {pageNum}
                             </Button>
                           );
-                        }
+                        },
                       )}
                     </div>
 

@@ -1140,7 +1140,9 @@ export default function DashboardPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{item.name}</p>
+                          <p className="font-medium text-sm">
+                            {item.product_name}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {item.code} • {Math.abs(item.quantity)}{" "}
                             {item.unit_code}
@@ -1172,7 +1174,7 @@ export default function DashboardPage() {
         )}
 
         {/* Pesanan untuk SALES */}
-        {userResponsibilities.SALES && (
+        {/* {userResponsibilities.SALES && (
           <Card className="border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1223,7 +1225,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
       </div>
     </div>
   );
