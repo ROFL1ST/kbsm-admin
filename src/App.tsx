@@ -50,6 +50,7 @@ import ProductsReceivedDetail from "./pages/Products/ProductsReceivedDetail";
 import StockList from "./pages/InventoryProducts/StockList";
 import EditInventoryStock from "./pages/InventoryProducts/Action/Edit";
 import CreateInventoryStock from "./pages/InventoryProducts/Action/Create";
+import ManageCategories from "./pages/InventoryProducts/ManageCategories";
 import ClientsPage from "./pages/Clients/Clients";
 import CreateClientPage from "./pages/Clients/Actions/CreatePage";
 import EditClientPage from "./pages/Clients/Actions/EditPage";
@@ -254,6 +255,10 @@ const App = () => (
                 <Route
                   path="stock-list/create"
                   element={<CreateInventoryStock />}
+                />
+                <Route
+                  path="stock-list/manage-categories"
+                  element={<ManageCategories />}
                 />
                 <Route path="outgoing" element={<ProductOuts />} />
                 <Route path="finance-in" element={<FinanceInPage />} />

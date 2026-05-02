@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -197,12 +198,21 @@ export default function StockList() {
             Kelola dan pantau inventori produk Anda
           </p>
         </div>
-        {isPurchasing && (
-          <Button onClick={() => navigate("/stock-list/create")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Produk
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/stock-list/manage-categories")}
+          >
+            <Tag className="mr-2 h-4 w-4" />
+            Manage Categories
           </Button>
-        )}
+          {isPurchasing && (
+            <Button onClick={() => navigate("/stock-list/create")}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Produk
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}
