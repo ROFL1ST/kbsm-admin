@@ -226,7 +226,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainNavigation.map((item) => (
-                  <NavLink to={item.href} className={getNavLinkClass}>
+                  <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                     <item.icon
                       className={cn("h-4 w-4", !collapsed && "mr-3")}
                     />
@@ -248,7 +248,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {warehouseNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />
@@ -273,7 +273,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {financeNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />
@@ -399,7 +399,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />

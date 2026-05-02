@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Filter,
   Tag,
+  Percent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,6 +206,13 @@ export default function StockList() {
           >
             <Tag className="mr-2 h-4 w-4" />
             Manage Categories
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/stock-list/manage-discounts")}
+          >
+            <Percent className="mr-2 h-4 w-4" />
+            Manage Discounts
           </Button>
           {isPurchasing && (
             <Button onClick={() => navigate("/stock-list/create")}>

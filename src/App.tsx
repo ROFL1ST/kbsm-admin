@@ -72,6 +72,7 @@ import AllProductManageFixingOrderClients from "./pages/PurchaseOrderClients/Man
 import DeliveryHistoryDetailReturn from "./pages/PurchaseOrderClients/Driver/Actions/DetailReturn";
 import Finance from "./pages/Finance/Finance";
 import ManageBanks from "./pages/Finance/ManageBanks";
+import ManageDiscounts from "./pages/InventoryProducts/ManageDiscounts";
 import ProductsPreparationPacking from "./pages/Products/ProductsPreparationPacking";
 
 const queryClient = new QueryClient();
@@ -261,6 +262,10 @@ const App = () => (
                 <Route
                   path="stock-list/manage-categories"
                   element={<ManageCategories />}
+                />
+                <Route
+                  path="stock-list/manage-discounts"
+                  element={<ManageDiscounts />}
                 />
                 <Route path="outgoing" element={<ProductOuts />} />
                 <Route path="finance-in" element={<FinanceInPage />} />
