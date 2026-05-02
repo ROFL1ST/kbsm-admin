@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Car,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -117,6 +118,12 @@ const financeNavigation = [
     href: "/finance-out",
     icon: CreditCard,
     description: "Expense Tracking",
+  },
+  {
+    title: "Bank",
+    href: "/manage-banks",
+    icon: Landmark,
+    description: "Kelola Rekening Bank",
   },
   // {
   //   title: "Pesanan Perusahaan",

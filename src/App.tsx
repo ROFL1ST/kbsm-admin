@@ -71,6 +71,7 @@ import DetailClientPage from "./components/ui/DetailClient";
 import AllProductManageFixingOrderClients from "./pages/PurchaseOrderClients/ManageProblem/AllProductManageFixingOrderClients";
 import DeliveryHistoryDetailReturn from "./pages/PurchaseOrderClients/Driver/Actions/DetailReturn";
 import Finance from "./pages/Finance/Finance";
+import ManageBanks from "./pages/Finance/ManageBanks";
 import ProductsPreparationPacking from "./pages/Products/ProductsPreparationPacking";
 
 const queryClient = new QueryClient();
@@ -94,6 +95,7 @@ const routeResponsibilities: Record<string, string[]> = {
   // ðŸ’° Finance
   "/finance-in": ["FINANCE"],
   "/finance-out": ["FINANCE"],
+  "/manage-banks": ["FINANCE"],
   "/po-vendors-received": ["FINANCE"],
   "/po-vendors-received/edit": ["FINANCE"],
 
@@ -263,6 +265,7 @@ const App = () => (
                 <Route path="outgoing" element={<ProductOuts />} />
                 <Route path="finance-in" element={<FinanceInPage />} />
                 <Route path="finance" element={<Finance />} />
+                <Route path="manage-banks" element={<ManageBanks />} />
                 <Route path="finance-out" element={<FinanceOutPage />} />
                 <Route path="users" element={<UsersPage />} />
                 <Route path="reports" element={<ReportsPage />} />
