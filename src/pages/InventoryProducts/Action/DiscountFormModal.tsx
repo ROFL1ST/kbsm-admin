@@ -12,8 +12,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Upload, X } from "lucide-react";
 import { Discount } from "@/contexts/Discounts.Context";
+import { useCategories } from "@/contexts/Categories.Context";
+import { useProducts, ProductsInventoryField } from "@/contexts/Products.Context";
 
 export interface DiscountFormData {
   path: File | null;
@@ -27,6 +36,29 @@ export interface DiscountFormData {
   product_id: number;
   valid_until: string;
 }
+
+interface ProductOption extends ProductsInventoryField {
+  category_id?: number;
+  price?: number;
+}
+
+interface CategoryOption {
+  id: number;
+  name: string;
+}
+
+const DUMMY_CATEGORIES: CategoryOption[] = [
+  { id: 1, name: "Skincare" },
+  { id: 2, name: "Moisturizer" },
+  { id: 3, name: "Serum" },
+];
+
+const DUMMY_PRODUCTS: ProductOption[] = [
+  { product_unit_id: 1, product_id: 1, product_detail_id: 1, name: "Aloe Vera Gel", unit_code: "PCS", product_name: "", product_description: "", code: 0, margin: 0, total_quantity: 0, category_id: 1, price: 45000 },
+  { product_unit_id: 2, product_id: 2, product_detail_id: 2, name: "Rice Toner", unit_code: "BTL", product_name: "", product_description: "", code: 0, margin: 0, total_quantity: 0, category_id: 1, price: 75000 },
+  { product_unit_id: 3, product_id: 3, product_detail_id: 3, name: "Hyaluronic Moisturizer", unit_code: "JAR", product_name: "", product_description: "", code: 0, margin: 0, total_quantity: 0, category_id: 2, price: 120000 },
+  { product_unit_id: 4, product_id: 4, product_detail_id: 4, name: "Vitamin C Serum", unit_code: "PCS", product_name: "", product_description: "", code: 0, margin: 0, total_quantity: 0, category_id: 3, price: 95000 },
+];
 
 interface DiscountFormModalProps {
   children: React.ReactNode;
@@ -55,8 +87,19 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { categories, getCategories } = useCategories();
+  const { productsInventory, getInventory } = useProducts();
+
+  const displayCategories: CategoryOption[] =
+    categories.length > 0 ? categories : DUMMY_CATEGORIES;
+  const displayProducts: ProductOption[] =
+    productsInventory.length > 0 ? productsInventory : DUMMY_PRODUCTS;
+
   useEffect(() => {
     if (open) {
+      getCategories({ page: 1, size: 100 });
+      getInventory({ page: 1, size: 100, search: "", type: undefined });
+
       if (isEdit && initialData) {
         setName(initialData.name);
         setDiscountPercentage(initialData.discount_percentage);
@@ -89,6 +132,24 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
     }
   }, [open, isEdit, initialData?.id]);
 
+  const handleProductSelect = (value: string) => {
+    const selected = displayProducts.find(
+      (p: ProductOption) => String(p.product_unit_id) === value,
+    );
+    if (selected) {
+      setProductUnitId(selected.product_unit_id);
+      setProductDetailId(selected.product_detail_id);
+      setProductId(selected.product_id);
+      if (selected.category_id) setCategoryId(selected.category_id);
+      if (!name) setName(selected.name);
+      if (selected.price && selected.price > 0) {
+        setOriginalPrice(selected.price);
+        setFinalPrice(0);
+        setDiscountPercentage(0);
+      }
+    }
+  };
+
   const handleOriginalPriceChange = (val: number) => {
     setOriginalPrice(val);
     if (val > 0 && discountPercentage > 0) {
@@ -100,6 +161,15 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
     setDiscountPercentage(val);
     if (originalPrice > 0 && val > 0) {
       setFinalPrice(Math.round(originalPrice * (1 - val / 100)));
+    }
+  };
+
+  const handleFinalPriceChange = (val: number) => {
+    setFinalPrice(val);
+    if (originalPrice > 0 && val > 0 && val < originalPrice) {
+      setDiscountPercentage(
+        Math.round(((originalPrice - val) / originalPrice) * 100),
+      );
     }
   };
 
@@ -146,6 +216,9 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
     setOpen(false);
   };
 
+  const selectedProductUnitId = productUnitId > 0 ? String(productUnitId) : "";
+  const selectedCategoryId = categoryId > 0 ? String(categoryId) : "";
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
@@ -161,11 +234,6 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        {/*
-          Image upload berada LANGSUNG di AlertDialogContent,
-          TIDAK di dalam div overflow — sama seperti BankFormModal.
-          Ini yang memastikan file input bisa diklik di dalam Radix AlertDialog.
-        */}
         <div className="space-y-2">
           <Label>
             Gambar Produk{" "}
@@ -210,10 +278,51 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
           />
         </div>
 
-        {/* Sisa form fields dalam scrollable container */}
         <div className="max-h-[40vh] overflow-y-auto pr-1 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Pilih Produk</Label>
+              <Select
+                value={selectedProductUnitId}
+                onValueChange={handleProductSelect}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih produk..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {displayProducts.map((p: ProductOption) => (
+                    <SelectItem
+                      key={p.product_unit_id}
+                      value={String(p.product_unit_id)}
+                    >
+                      {p.name} ({p.unit_code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Kategori</Label>
+              <Select
+                value={selectedCategoryId}
+                onValueChange={(val) => setCategoryId(Number(val))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {displayCategories.map((c: CategoryOption) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label>Nama Produk</Label>
+            <Label>Nama Diskon</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -241,7 +350,6 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
                 max={100}
                 value={discountPercentage || ""}
                 onChange={(e) => handleDiscountChange(Number(e.target.value))}
-                placeholder="25"
               />
             </div>
             <div className="space-y-2">
@@ -249,47 +357,9 @@ export const DiscountFormModal: React.FC<DiscountFormModalProps> = ({
               <Input
                 type="number"
                 value={finalPrice || ""}
-                onChange={(e) => setFinalPrice(Number(e.target.value))}
-                placeholder="51750"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Product ID</Label>
-              <Input
-                type="number"
-                value={productId || ""}
-                onChange={(e) => setProductId(Number(e.target.value))}
-                placeholder="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Product Detail ID</Label>
-              <Input
-                type="number"
-                value={productDetailId || ""}
-                onChange={(e) => setProductDetailId(Number(e.target.value))}
-                placeholder="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Product Unit ID</Label>
-              <Input
-                type="number"
-                value={productUnitId || ""}
-                onChange={(e) => setProductUnitId(Number(e.target.value))}
-                placeholder="1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Category ID</Label>
-              <Input
-                type="number"
-                value={categoryId || ""}
-                onChange={(e) => setCategoryId(Number(e.target.value))}
-                placeholder="1"
+                onChange={(e) =>
+                  handleFinalPriceChange(Number(e.target.value))
+                }
               />
             </div>
           </div>
