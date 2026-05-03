@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Car,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,12 @@ const financeNavigation = [
     icon: CreditCard,
     description: "Expense Tracking",
   },
+  {
+    title: "Bank",
+    href: "/manage-banks",
+    icon: Landmark,
+    description: "Kelola Rekening Bank",
+  },
   // {
   //   title: "Pesanan Perusahaan",
   //   href: "/po-vendors-received",
@@ -219,7 +226,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainNavigation.map((item) => (
-                  <NavLink to={item.href} className={getNavLinkClass}>
+                  <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                     <item.icon
                       className={cn("h-4 w-4", !collapsed && "mr-3")}
                     />
@@ -241,7 +248,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {warehouseNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />
@@ -266,7 +273,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {financeNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />
@@ -392,7 +399,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
+                    <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
                       <item.icon
                         className={cn("h-4 w-4", !collapsed && "mr-3")}
                       />
