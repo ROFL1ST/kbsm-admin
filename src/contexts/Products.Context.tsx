@@ -401,6 +401,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const response = await API.patch<ApiResponse>("/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        validateStatus: () => true,
       });
       return response?.data;
     } catch (error) {
@@ -432,6 +433,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const response = await API.post<ApiResponse>("/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        validateStatus: () => true,
       });
       return response?.data;
     } catch (error) {
