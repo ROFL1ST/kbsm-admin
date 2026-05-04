@@ -14,6 +14,7 @@ import {
   Star,
   BadgePercent,
   Image,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,6 +230,13 @@ export default function StockList() {
           >
             <Percent className="mr-2 h-4 w-4" />
             Manage Discounts
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/stock-list/manage-reviews")}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Manage Reviews
           </Button>
           {isPurchasing && (
             <Button onClick={() => navigate("/stock-list/create")}>
