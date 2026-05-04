@@ -28,6 +28,20 @@ import { FormStateValueCode, useParameter } from "@/contexts/Parameter.context";
 import { ConfirmModal } from "@/components/ui/ConfimModal";
 import { useCategories } from "@/contexts/Categories.Context";
 
+interface ProductPicture {
+  id: number;
+  product_id: number;
+  product_detail_id: number;
+  product_unit_id: number;
+  path: string;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+}
+
 export default function EditInventoryStock() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,7 +80,7 @@ export default function EditInventoryStock() {
   // Image handling
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [existingPictures, setExistingPictures] = useState<ProductPicture[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -104,7 +118,10 @@ export default function EditInventoryStock() {
           status: data.status ?? "LIVE",
           is_best_seller: data.is_best_seller ?? false,
         });
-        if (data.path) setExistingImageUrl(data.path);
+        // Populate existing pictures from pictures array
+        if (Array.isArray(data.pictures) && data.pictures.length > 0) {
+          setExistingPictures(data.pictures);
+        }
       }
     } catch (error) {
       toast({ title: "Error", description: "Gagal memuat detail produk", variant: "destructive" });
@@ -152,6 +169,7 @@ export default function EditInventoryStock() {
         setImageFiles([]);
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
+        fetchDetailProduct();
       } else {
         const errorMessages = Array.isArray(response?.messages)
           ? response.messages.map((m: any) => m.message).join(", ")
@@ -481,20 +499,28 @@ export default function EditInventoryStock() {
             <CardTitle>Foto Produk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {existingImageUrl && (
-              <div className="space-y-1">
+            {/* Existing pictures from API */}
+            {existingPictures.length > 0 && (
+              <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">Foto saat ini</p>
-                <img
-                  src={existingImageUrl}
-                  alt="existing"
-                  className="w-full h-32 object-cover rounded-lg border border-primary/10"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  {existingPictures.map((pic) => (
+                    <div key={pic.id} className="relative">
+                      <img
+                        src={pic.path}
+                        alt={`product-${pic.id}`}
+                        className="w-full h-24 object-cover rounded-lg border border-primary/10"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Upload area (only in edit mode) */}
             {isEditMode && (
               <div
                 className="border-2 border-dashed border-primary/30 rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/5 transition"
@@ -517,30 +543,34 @@ export default function EditInventoryStock() {
               </div>
             )}
 
+            {/* New image previews */}
             {imagePreviews.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {imagePreviews.map((src, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={src}
-                      alt={`preview-${idx}`}
-                      className="w-full h-20 object-cover rounded-lg border border-primary/10"
-                    />
-                    {isEditMode && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveNewImage(idx)}
-                        className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Foto baru</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {imagePreviews.map((src, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={src}
+                        alt={`preview-${idx}`}
+                        className="w-full h-24 object-cover rounded-lg border border-primary/10"
+                      />
+                      {isEditMode && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewImage(idx)}
+                          className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {!existingImageUrl && imagePreviews.length === 0 && (
+            {existingPictures.length === 0 && imagePreviews.length === 0 && (
               <p className="text-xs text-muted-foreground text-center">Belum ada foto produk</p>
             )}
           </CardContent>
