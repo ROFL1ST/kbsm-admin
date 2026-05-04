@@ -94,7 +94,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
             />
           </div>
           <div className="space-y-2">
-            <Label>Gambar Kategori {isEdit && "(opsional jika tidak diubah)"}</Label>
+            <Label>Gambar Kategori {isEdit && ""}</Label>
             {imagePreview ? (
               <div className="relative w-full h-40 rounded-lg overflow-hidden border border-primary/20">
                 <img

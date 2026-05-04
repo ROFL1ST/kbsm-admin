@@ -143,7 +143,7 @@ export const BankFormModal: React.FC<BankFormModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Logo Bank {isEdit && "(opsional jika tidak diubah)"}</Label>
+            <Label>Logo Bank {isEdit && ""}</Label>
             {logoPreview ? (
               <div className="relative w-full h-32 rounded-lg overflow-hidden border border-primary/20 bg-gray-50">
                 <img
