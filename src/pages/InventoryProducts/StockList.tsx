@@ -11,6 +11,9 @@ import {
   Filter,
   Tag,
   Percent,
+  Star,
+  BadgePercent,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +27,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -36,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   ProductUnitIDInventoryKey,
   useProducts,
@@ -45,14 +48,17 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatIDR } from "@/components/format/IDR";
 import { useAuth } from "@/contexts/Auth.Context";
+import { useCategories } from "@/contexts/Categories.Context";
 
 export default function StockList() {
   const { getInventory, productsInventory, pagination, deleteInventory } =
     useProducts();
+  const { categories, getCategories } = useCategories();
   const [request, setRequest] = useState({
     page: 1,
     size: 8,
-    type: undefined,
+    type: undefined as string | undefined,
+    category_id: undefined as string | undefined,
     search: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,8 +68,8 @@ export default function StockList() {
     total_product_price_follow_up: 0,
   });
   const navigate = useNavigate();
-  const totalData = pagination?.total_data;
-  const totalPages = pagination?.total_page;
+  const totalData = pagination?.total_data ?? 0;
+  const totalPages = pagination?.total_page ?? 1;
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -88,21 +94,26 @@ export default function StockList() {
     isFinance || isPurchasing || isWarehouse || isAdmin;
   const showActions = canEdit || canDelete;
 
+  // Load categories for filter dropdown
+  useEffect(() => {
+    getCategories({ page: 1, size: 100, search: "" });
+  }, []);
+
   // Delete function
   const handleDelete = async (params: ProductUnitIDInventoryKey) => {
     try {
       const res = await deleteInventory(params);
-      if (res.status) {
+      if (res?.status) {
         toast({
           title: "Berhasil",
           description: "Data berhasil dihapus",
           variant: "default",
         });
-        getInventory(request);
+        fetchDetailInventory(request);
       } else {
         toast({
           title: "Error",
-          description: res.messages || "Gagal menghapus Produk",
+          description: res?.messages || "Gagal menghapus Produk",
           variant: "destructive",
         });
       }
@@ -117,37 +128,47 @@ export default function StockList() {
 
   const fetchDetailInventory = async (params) => {
     const response = await getInventory(params);
-    setHeader(response?.data?.header);
+    if (response?.data?.header) {
+      setHeader(response.data.header);
+    }
   };
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      setRequest({
-        ...request,
-        page: page,
-      });
+      setRequest({ ...request, page });
       setCurrentPage(page);
-      getInventory({
-        ...request,
-        page: page,
-      });
     }
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = e?.target?.value;
-    setRequest({ ...request, search: searchValue });
-    fetchDetailInventory({
+    setRequest({ ...request, search: searchValue, page: 1 });
+    setCurrentPage(1);
+  };
+
+  const handleTypeFilter = (val: string) => {
+    setRequest({ ...request, type: val === "__all__" ? undefined : val, page: 1 });
+    setCurrentPage(1);
+  };
+
+  const handleCategoryFilter = (val: string) => {
+    setRequest({
       ...request,
-      search: searchValue,
+      category_id: val === "__all__" ? undefined : val,
+      page: 1,
     });
+    setCurrentPage(1);
+  };
+
+  const handleResetFilter = () => {
+    setRequest({ search: "", type: undefined, category_id: undefined, page: 1, size: 8 });
+    setCurrentPage(1);
   };
 
   // Generate pagination buttons
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisiblePages = 5;
-
     let startPage = 1;
     let endPage = totalPages;
 
@@ -179,14 +200,9 @@ export default function StockList() {
         </Button>,
       );
     }
-
     return buttons;
   };
-  const handletypeFilter = (e) => {
-    console.log(e);
-    setRequest({ ...request, type: e });
-    fetchDetailInventory({ ...request, type: e });
-  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -241,7 +257,7 @@ export default function StockList() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Peringatan Stok
+                  Stok Perlu Diperhatikan
                 </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-warning" />
               </CardHeader>
@@ -257,7 +273,7 @@ export default function StockList() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Belum Penginputan Harga Jual
+                  Belum Ada Harga Jual
                 </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-warning" />
               </CardHeader>
@@ -280,56 +296,63 @@ export default function StockList() {
           <CardTitle>Daftar Produk</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari Nama , Deskripsi, Kode .."
-                  className="w-full md:w-[300px] pl-10"
-                  value={request?.search}
-                  onChange={handleSearch}
-                />
-              </div>
-              {canViewHPP && (
-                <div className="relative">
-                  <Select
-                    value={request?.type}
-                    onValueChange={handletypeFilter}
-                  >
-                    <SelectTrigger className="w-fit min-w-[200px] rounded-xl border-primary/20 focus:ring-primary">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <SelectValue placeholder="Status Distribusi" />
-                    </SelectTrigger>
-                    <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
-                      <SelectItem value={"0"}>
-                        Butuh Restock Quantity
-                      </SelectItem>
-                      <SelectItem value={"1"}>
-                        Belum Penginputan Harga Jual
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-xl flex items-center gap-2 hover:bg-red-50 hover:text-red-600 transition"
-                  onClick={() =>
-                    setRequest({
-                      search: "",
-                      type: "",
-                      page: 1,
-                      size: 10,
-                    })
-                  }
-                >
-                  <Filter className="h-4 w-4" />
-                  Reset Filter
-                </Button>
-              </div>
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari nama, kode produk..."
+                className="pl-10"
+                value={request?.search}
+                onChange={handleSearch}
+              />
             </div>
+
+            {/* Type Filter */}
+            <Select
+              value={request?.type ?? "__all__"}
+              onValueChange={handleTypeFilter}
+            >
+              <SelectTrigger className="w-fit min-w-[200px] rounded-xl border-primary/20 focus:ring-primary">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Filter Tipe" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+                <SelectItem value="__all__">Semua Tipe</SelectItem>
+                <SelectItem value="0">Stok di Bawah 10</SelectItem>
+                <SelectItem value="1">Best Seller</SelectItem>
+                <SelectItem value="2">Produk Diskon</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Category Filter */}
+            <Select
+              value={request?.category_id ?? "__all__"}
+              onValueChange={handleCategoryFilter}
+            >
+              <SelectTrigger className="w-fit min-w-[200px] rounded-xl border-primary/20 focus:ring-primary">
+                <Tag className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Filter Kategori" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+                <SelectItem value="__all__">Semua Kategori</SelectItem>
+                {categories?.map((cat) => (
+                  <SelectItem key={cat.id} value={String(cat.id)}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Reset */}
+            <Button
+              variant="outline"
+              className="rounded-xl flex items-center gap-2 hover:bg-red-50 hover:text-red-600 transition"
+              onClick={handleResetFilter}
+            >
+              <Filter className="h-4 w-4" />
+              Reset Filter
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -342,28 +365,102 @@ export default function StockList() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">Gambar</TableHead>
                     <TableHead>Kode</TableHead>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Nama Produk</TableHead>
+                    <TableHead>Kategori</TableHead>
                     <TableHead>Unit</TableHead>
-                    <TableHead>HPP</TableHead>
-                    <TableHead>Harga Jual</TableHead>
-                    <TableHead>Margin</TableHead>
-                    <TableHead>Total Quantity</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    {canViewHPP && <TableHead>HPP</TableHead>}
+                    {canViewPrice && <TableHead>Harga Jual</TableHead>}
+                    {canViewPrice && <TableHead>Harga Final</TableHead>}
+                    {canViewHPP && <TableHead>Margin</TableHead>}
+                    {canViewTotalQuantity && <TableHead>Stok</TableHead>}
+                    <TableHead>Label</TableHead>
+                    {showActions && <TableHead>Aksi</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {productsInventory.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.code}</TableCell>
-                      <TableCell>{item.product_name}</TableCell>
-                      <TableCell>{item.product_description}</TableCell>
+                    <TableRow key={`${item.product_detail_id}-${item.product_unit_id}`}>
+                      {/* Thumbnail */}
+                      <TableCell>
+                        {item.path ? (
+                          <img
+                            src={item.path}
+                            alt={item.product_name}
+                            className="h-10 w-10 rounded-lg object-cover border border-primary/10"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                            <Image className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+
+                      <TableCell className="font-mono text-xs">{item.code}</TableCell>
+                      <TableCell className="font-medium max-w-[180px]">
+                        <div className="truncate" title={item.product_name}>
+                          {item.product_name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{item.category_name}</Badge>
+                      </TableCell>
                       <TableCell>{item.unit_code}</TableCell>
-                      <TableCell>{formatIDR(item.hpp || 0)}</TableCell>
-                      <TableCell>{formatIDR(item.price || 0)}</TableCell>
-                      <TableCell>{formatIDR(item.margin || 0)}</TableCell>
-                      <TableCell>{item.total_quantity}</TableCell>
+                      {canViewHPP && (
+                        <TableCell>{formatIDR(item.hpp || 0)}</TableCell>
+                      )}
+                      {canViewPrice && (
+                        <TableCell>{formatIDR(item.price || 0)}</TableCell>
+                      )}
+                      {canViewPrice && (
+                        <TableCell>
+                          {item.discount_flag && item.final_price != null ? (
+                            <span className="text-green-600 font-semibold">
+                              {formatIDR(item.final_price)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {canViewHPP && (
+                        <TableCell>{formatIDR(item.margin || 0)}</TableCell>
+                      )}
+                      {canViewTotalQuantity && (
+                        <TableCell>
+                          <span
+                            className={
+                              item.total_quantity < 10
+                                ? "text-destructive font-semibold"
+                                : ""
+                            }
+                          >
+                            {item.total_quantity}
+                          </span>
+                        </TableCell>
+                      )}
+
+                      {/* Labels */}
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {item.is_best_seller && (
+                            <Badge className="bg-amber-100 text-amber-700 border-amber-300 gap-1">
+                              <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                              Best Seller
+                            </Badge>
+                          )}
+                          {item.discount_flag && (
+                            <Badge className="bg-blue-100 text-blue-700 border-blue-300 gap-1">
+                              <BadgePercent className="h-3 w-3" />
+                              Diskon {formatIDR(item.discount_amount)}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
 
                       {showActions && (
                         <TableCell>
@@ -385,7 +482,7 @@ export default function StockList() {
                             {canDelete && (
                               <ConfirmModal
                                 title="Hapus Produk"
-                                description={`Apakah Anda yakin ingin menghapus produk "<b>${item.name}</b>"? Tindakan ini bisa dibatalkan.`}
+                                description={`Apakah Anda yakin ingin menghapus produk "<b>${item.product_name}</b>"? Tindakan ini bisa dibatalkan.`}
                                 confirmText="Iya"
                                 cancelText="Batal"
                                 variant="outline"
@@ -422,11 +519,11 @@ export default function StockList() {
                     <span className="text-sm text-gray-700">
                       Menampilkan{" "}
                       <span className="font-semibold">
-                        {(request.page - 1) * request.size + 1}
+                        {(currentPage - 1) * request.size + 1}
                       </span>{" "}
                       -{" "}
                       <span className="font-semibold">
-                        {Math.min(request.page * request.size, totalData)}
+                        {Math.min(currentPage * request.size, totalData)}
                       </span>{" "}
                       dari <span className="font-semibold">{totalData}</span>{" "}
                       produk
@@ -434,7 +531,6 @@ export default function StockList() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {/* Previous Button */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -446,12 +542,10 @@ export default function StockList() {
                       Sebelumnya
                     </Button>
 
-                    {/* Page Numbers */}
                     <div className="flex space-x-1">
                       {renderPaginationButtons()}
                     </div>
 
-                    {/* Next Button */}
                     <Button
                       variant="outline"
                       size="sm"

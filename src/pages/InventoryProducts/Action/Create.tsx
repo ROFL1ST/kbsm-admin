@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   Select,
   SelectTrigger,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Save, Trash2, Upload } from "lucide-react";
+import { Save, Upload, X, ImagePlus, Trash2 } from "lucide-react";
 import {
   ProductsInventoryDetailField,
   useProducts,
@@ -25,14 +25,15 @@ import PriceInput from "@/components/ui/PriceInput";
 import { UomModal } from "./UomModal";
 import { FormStateValueCode, useParameter } from "@/contexts/Parameter.context";
 import { ConfirmModal } from "@/components/ui/ConfimModal";
-import { useVendors } from "@/contexts/Vendors.Context";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useCategories } from "@/contexts/Categories.Context";
 
 export default function CreateInventoryStock() {
   const navigate = useNavigate();
-  const { createInventory } = useProducts(); // Changed to createInventory
+  const { createInventory } = useProducts();
   const { toast } = useToast();
+  const { categories, getCategories } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
+
   const [form, setForm] = useState<ProductsInventoryDetailField>({
     code: null,
     product_name: null,
@@ -45,9 +46,16 @@ export default function CreateInventoryStock() {
     product_unit_id: null,
     total_quantity: 0,
     unit_code: null,
-    vendor_id: null,
+    category_id: null,
+    status: "LIVE",
+    path: null,
   });
-  const { vendors, getVendors } = useVendors();
+
+  // Image preview state
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const {
     addValueCode,
     deleteValueCode,
@@ -62,105 +70,93 @@ export default function CreateInventoryStock() {
     value: "",
     description: "",
   });
-  const [localSearch, setLocalSearch] = useState("");
-  const debouncedSearch = useDebounce(localSearch, 300);
+
+  useEffect(() => {
+    getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
+    getCategories({ page: 1, size: 100, search: "" });
+  }, []);
+
+  // ── Image handling ──────────────────────────────────────────────────────────
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newFiles = [...imageFiles, ...files];
+    setImageFiles(newFiles);
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    // Validation
     if (!form.product_name?.trim()) {
-      toast({
-        title: "Gagal",
-        description: "Nama produk harus diisi",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Nama produk harus diisi", variant: "destructive" });
       return;
     }
     if (!form.product_description?.trim()) {
-      toast({
-        title: "Gagal",
-        description: "Deskripsi produk harus diisi",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Deskripsi produk harus diisi", variant: "destructive" });
       return;
     }
-
     if (!form.unit_code) {
-      toast({
-        title: "Gagal",
-        description: "Satuan harus dipilih",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Satuan harus dipilih", variant: "destructive" });
       return;
     }
-    if (!form.vendor_id) {
-      toast({
-        title: "Gagal",
-        description: "Vendor harus dipilih",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (form.total_quantity < 0) {
-      toast({
-        title: "Gagal",
-        description: "Quantity tidak boleh negatif",
-        variant: "destructive",
-      });
+    if (!form.category_id) {
+      toast({ title: "Gagal", description: "Kategori harus dipilih", variant: "destructive" });
       return;
     }
     if (!form.hpp) {
-      toast({
-        title: "Gagal",
-        description: "Harga pokok tidak boleh kosong",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Harga pokok tidak boleh kosong", variant: "destructive" });
+      return;
+    }
+    if (form.total_quantity < 0) {
+      toast({ title: "Gagal", description: "Quantity tidak boleh negatif", variant: "destructive" });
       return;
     }
 
     setIsLoading(true);
     try {
       const response = await createInventory({
-        name: form?.product_name,
-        description: form?.product_description,
-        unit_code: form?.unit_code,
-        hpp: form?.hpp,
-        vendor_id: form?.vendor_id,
-        price: form?.price || 0,
-        total_quantity: form?.total_quantity,
+        name: form.product_name,
+        description: form.product_description,
+        unit_code: form.unit_code,
+        hpp: form.hpp,
+        price: form.price || 0,
+        total_quantity: form.total_quantity,
+        category_id: form.category_id,
+        status: form.status || "LIVE",
+        path: imageFiles.length > 0 ? imageFiles : undefined,
       });
 
-      if (response.status) {
-        toast({
-          title: "Berhasil",
-          description: "Produk berhasil dibuat",
-        });
-        navigate(-1); // Go back to previous page after success
+      if (response?.status) {
+        toast({ title: "Berhasil", description: "Produk berhasil dibuat" });
+        navigate(-1);
       } else {
         toast({
           title: "Gagal",
-          description: response.messages || "Gagal membuat produk",
+          description: response?.messages || "Gagal membuat produk",
           variant: "destructive",
         });
       }
     } catch (error) {
-      toast({
-        title: "Gagal",
-        description: "Terjadi kesalahan saat membuat produk",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Terjadi kesalahan saat membuat produk", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (
-    field: keyof ProductsInventoryDetailField,
-    value: any,
-  ) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = (field: keyof ProductsInventoryDetailField, value: any) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleReset = () => {
@@ -172,20 +168,24 @@ export default function CreateInventoryStock() {
       product_detail_id: null,
       product_id: null,
       product_unit_id: null,
-      hpp: null,
-      price: null,
+      hpp: 0,
+      price: 0,
       total_quantity: 0,
       unit_code: null,
-      vendor_id: null,
+      category_id: null,
+      status: "LIVE",
+      path: null,
     });
+    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    setImageFiles([]);
+    setImagePreviews([]);
   };
+
   const { user } = useAuth();
-  const isFinance = user?.responsibilities?.some(
-    (role) => role.code === "FINANCE",
-  );
-  const isPurchasing = user?.responsibilities?.some(
-    (role) => role.code === "PURCHASING",
-  );
+  const isFinance = user?.responsibilities?.some((role) => role.code === "FINANCE");
+  const isPurchasing = user?.responsibilities?.some((role) => role.code === "PURCHASING");
+
+  // ── UOM handlers ──────────────────────────────────────────────────────────
   const handleCategorySubmit = async () => {
     try {
       const newForm = {
@@ -194,34 +194,17 @@ export default function CreateInventoryStock() {
         lookup_value_code: uomForms?.value.toUpperCase().replace(/\s+/g, "_"),
       };
       const res = await addValueCode(newForm);
-
       if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Kategori baru berhasil ditambahkan.`,
-        });
-        getValueCode({
-          size: 100,
-          page: 1,
-          lookup_code: "UOM",
-        });
+        toast({ title: "Berhasil", description: "Satuan baru berhasil ditambahkan." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
       } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal menambahkan kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
+        toast({ title: "Gagal", description: res?.messages || "Gagal menambahkan satuan.", variant: "destructive" });
       }
     } catch (error) {
-      console.error("Error adding category:", error);
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat menambahkan kategori.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Terjadi kesalahan saat menambahkan satuan.", variant: "destructive" });
     }
   };
+
   const handleEditValueCode = async (item: any) => {
     try {
       const updatedForm = {
@@ -233,89 +216,38 @@ export default function CreateInventoryStock() {
       };
       const res = await updateValueCode(updatedForm);
       if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Kategori berhasil diperbarui.`,
-          variant: "default",
-        });
-        getValueCode({
-          size: 100,
-          page: 1,
-          lookup_code: "UOM",
-        });
+        toast({ title: "Berhasil", description: "Satuan berhasil diperbarui." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
       } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal memperbarui kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
+        toast({ title: "Gagal", description: res?.messages || "Gagal memperbarui satuan.", variant: "destructive" });
       }
     } catch (error) {
-      console.log("Error edit category:", error);
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat mengedit kategori.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Terjadi kesalahan saat mengedit satuan.", variant: "destructive" });
     }
   };
-  const handleDeleteCategory = async (id) => {
+
+  const handleDeleteUom = async (id: any) => {
     try {
       const res = await deleteValueCode(id);
       if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Satuan berhasil dihapus.`,
-          variant: "default",
-        });
-        getValueCode({
-          size: 1000,
-          page: 1,
-          lookup_code: "UOM",
-        });
+        toast({ title: "Berhasil", description: "Satuan berhasil dihapus." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
       } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal menghapus kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
+        toast({ title: "Gagal", description: res?.messages || "Gagal menghapus satuan.", variant: "destructive" });
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: " Terjadi kesalahan saat menghapus kategori.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Terjadi kesalahan saat menghapus satuan.", variant: "destructive" });
     }
   };
-  const handleGetVendors = async (params) => {
-    getVendors(params);
-  };
-  useEffect(() => {
-    getValueCode({
-      size: 1000,
-      page: 1,
-      lookup_code: "UOM",
-    });
-    handleGetVendors({
-      page: 1,
-      size: 10,
-      search: debouncedSearch,
-    });
-  }, [debouncedSearch]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="w-full md:w-4/5">
-          <h1 className="text-3xl font-bold text-foreground">
-            Tambah Produk Baru
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground">Tambah Produk Baru</h1>
           <p className="text-muted-foreground">Buat produk inventory baru</p>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-2">
           <UomModal
             onSubmit={handleCategorySubmit}
@@ -326,11 +258,7 @@ export default function CreateInventoryStock() {
           <Button variant="outline" onClick={handleReset} disabled={isLoading}>
             Reset
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
+          <Button onClick={handleSubmit} disabled={isLoading} className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             {isLoading ? "Menyimpan..." : "Simpan Produk"}
           </Button>
@@ -338,13 +266,13 @@ export default function CreateInventoryStock() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-3">
+        {/* Main Form */}
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Informasi Produk Baru</CardTitle>
+            <CardTitle>Informasi Produk</CardTitle>
           </CardHeader>
-
-          <CardContent className="space-y-6">
-            {/* Product Information */}
+          <CardContent className="space-y-5">
+            {/* Name & Description */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="product_name">
@@ -353,106 +281,56 @@ export default function CreateInventoryStock() {
                 <Input
                   id="product_name"
                   value={form.product_name || ""}
-                  onChange={(e) =>
-                    handleInputChange("product_name", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("product_name", e.target.value)}
                   placeholder="Masukkan nama produk"
                 />
               </div>
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="product_description">
+              <div className="space-y-2 md:col-span-2">
+                <Label>
                   Deskripsi <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="product_description"
+                <RichTextEditor
                   value={form.product_description || ""}
-                  onChange={(e) =>
-                    handleInputChange("product_description", e.target.value)
-                  }
-                  placeholder="Masukkan Deskripsi Produk"
+                  onChange={(html) => handleInputChange("product_description", html)}
+                  placeholder="Tulis deskripsi produk di sini..."
                 />
               </div>
             </div>
-            <div className="space-y-2 w-full">
-              <label>Vendor</label>
-              <Select
-                value={form.vendor_id?.toString() || ""}
-                onValueChange={(value) => {
-                  const selectedVendor = vendors.find(
-                    (v) => v.id.toString() === value,
-                  );
-                  if (selectedVendor) {
-                    handleInputChange("vendor_id", selectedVendor.id);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih Vendor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* Search Input */}
-                  <div className="p-2">
-                    <Input
-                      placeholder="Cari Vendor..."
-                      value={localSearch}
-                      onChange={(e) => setLocalSearch(e.target.value)}
-                      className="h-8"
-                    />
-                  </div>
 
-                  {/* Vendor List */}
-                  {vendors.map((v) => (
-                    <SelectItem key={v.id} value={v.id.toString()}>
-                      {v.name}
-                    </SelectItem>
-                  ))}
-
-                  {vendors.length === 0 && (
-                    <div className="p-2 text-sm text-muted-foreground text-center">
-                      {localSearch
-                        ? "Supplier tidak ditemukan"
-                        : "Tidak ada Vendor"}
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Category & Unit */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="total_quantity">
-                  Jumlah Stok Awal <span className="text-red-500">*</span>
+                <Label>
+                  Kategori <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="total_quantity"
-                  type="text"
-                  value={form.total_quantity}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "total_quantity",
-                      parseInt(e.target.value) || 0,
-                    )
-                  }
-                  min="0"
-                  placeholder="Masukkan jumlah stok awal"
-                  className="w-full"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Stok awal akan ditambahkan ke inventory
-                </p>
+                <Select
+                  value={form.category_id?.toString() || ""}
+                  onValueChange={(val) => handleInputChange("category_id", Number(val))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label>Satuan</Label>
                 <Select
-                  value={form.unit_code}
+                  value={form.unit_code || ""}
                   onValueChange={(val) => handleInputChange("unit_code", val)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih Satuan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {valueCode.map((item, index) => (
+                    {valueCode.map((item) => (
                       <div
                         key={item.lookup_value_code}
                         className="flex items-center justify-between px-2"
@@ -468,37 +346,25 @@ export default function CreateInventoryStock() {
                             setValueForms={setUomForms}
                             isEdit={true}
                             children={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="p-0"
-                              >
+                              <Button variant="ghost" size="icon" className="p-0">
                                 <Upload className="w-4 h-4" />
                               </Button>
                             }
                           />
                           <ConfirmModal
-                            title="Hapus Pesanan"
-                            description={`Apakah kamu yakin ingin menghapus pemasukan${" "}<b>${
-                              item.value
-                            }</b>? Tindakan ini tidak dapat dibatalkan.`}
+                            title="Hapus Satuan"
+                            description={`Apakah kamu yakin ingin menghapus satuan <b>${item.value}</b>?`}
                             confirmText="Iya"
                             cancelText="Batal"
                             variant="outline"
                             showIcon={false}
                             useHTML
                             trigger={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive"
-                              >
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
                                 <Trash2 />
                               </Button>
                             }
-                            onConfirm={() =>
-                              handleDeleteCategory(item.lookup_value_id)
-                            }
+                            onConfirm={() => handleDeleteUom(item.lookup_value_id)}
                           />
                         </div>
                       </div>
@@ -507,13 +373,47 @@ export default function CreateInventoryStock() {
                 </Select>
               </div>
             </div>
+
+            {/* Quantity & Status */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="total_quantity">
+                  Jumlah Stok Awal <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="total_quantity"
+                  type="number"
+                  value={form.total_quantity}
+                  onChange={(e) => handleInputChange("total_quantity", parseInt(e.target.value) || 0)}
+                  min={0}
+                  placeholder="Masukkan jumlah stok awal"
+                />
+                <p className="text-sm text-muted-foreground">Stok awal akan ditambahkan ke inventory</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status Produk</Label>
+                <Select
+                  value={form.status || "LIVE"}
+                  onValueChange={(val) => handleInputChange("status", val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LIVE">LIVE (Aktif)</SelectItem>
+                    <SelectItem value="DRAFT">DRAFT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Price Information */}
             <div className="grid gap-4 md:grid-cols-2">
-              {/* hpp */}
               {isPurchasing && (
                 <div className="space-y-2">
                   <Label htmlFor="hpp">
-                    Harga Modal Satuan <span className="text-red-500">*</span>
+                    Harga Modal (HPP) <span className="text-red-500">*</span>
                   </Label>
                   <PriceInput
                     value={form.hpp || null}
@@ -522,11 +422,10 @@ export default function CreateInventoryStock() {
                   />
                 </div>
               )}
-              {/* sell price */}
               {isFinance && (
                 <div className="space-y-2">
                   <Label htmlFor="price">
-                    Harga Jual Satuan <span className="text-red-500">*</span>
+                    Harga Jual <span className="text-red-500">*</span>
                   </Label>
                   <PriceInput
                     value={form.price || null}
@@ -536,6 +435,63 @@ export default function CreateInventoryStock() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Image Upload */}
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Foto Produk</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Upload Button */}
+            <div
+              className="border-2 border-dashed border-primary/30 rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImagePlus className="h-8 w-8 text-primary/50" />
+              <p className="text-sm text-muted-foreground text-center">
+                Klik untuk upload foto produk
+                <br />
+                <span className="text-xs">Bisa multiple gambar</span>
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </div>
+
+            {/* Preview */}
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={src}
+                      alt={`preview-${idx}`}
+                      className="w-full h-24 object-cover rounded-lg border border-primary/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {imagePreviews.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center">
+                Belum ada foto dipilih
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

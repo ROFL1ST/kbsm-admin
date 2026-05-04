@@ -159,3 +159,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── Tiptap Rich Text Editor ─────────────────────────────────────────────── */
+
+/* Placeholder */
+.tiptap.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap { outline: none; }
+
+.tiptap h2 { @apply text-xl font-bold mt-4 mb-2 text-foreground; }
+.tiptap h3 { @apply text-lg font-semibold mt-3 mb-1.5 text-foreground; }
+.tiptap p  { @apply my-1.5 leading-relaxed; }
+
+.tiptap ul  { @apply list-disc pl-5 my-2 space-y-1; }
+.tiptap ol  { @apply list-decimal pl-5 my-2 space-y-1; }
+.tiptap li  { @apply leading-relaxed; }
+
+.tiptap blockquote {
+  @apply border-l-4 border-primary pl-4 italic text-muted-foreground my-3;
+}
+
+.tiptap a    { @apply text-primary underline underline-offset-2 cursor-pointer; }
+.tiptap code { @apply bg-muted rounded px-1 py-0.5 font-mono text-sm; }
+.tiptap pre  { @apply bg-muted rounded-md p-3 font-mono text-sm my-3 overflow-x-auto; }
+.tiptap hr   { @apply border-border my-4; }
+.tiptap strong { @apply font-semibold; }
+

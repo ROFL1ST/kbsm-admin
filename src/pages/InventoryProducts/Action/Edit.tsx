@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   Select,
   SelectTrigger,
@@ -15,61 +15,34 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  useFinance,
-  FormStateFinanceInOut,
-  FormStateFinanceEdit,
-} from "@/contexts/Finance.context";
 import PriceInput from "@/components/ui/PriceInput";
-import {
-  Upload,
-  Edit,
-  Save,
-  X,
-  Trash2,
-  ChevronsUpDown,
-  Search,
-} from "lucide-react";
+import { Upload, Edit, Save, X, Trash2, ImagePlus } from "lucide-react";
 import {
   ProductsInventoryDetailField,
-  ProductsInventoryField,
   useProducts,
 } from "@/contexts/Products.Context";
 import { useAuth } from "@/contexts/Auth.Context";
 import { UomModal } from "./UomModal";
 import { FormStateValueCode, useParameter } from "@/contexts/Parameter.context";
 import { ConfirmModal } from "@/components/ui/ConfimModal";
-// import { useVendors } from "@/contexts/Vendors.Context";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useCategories } from "@/contexts/Categories.Context";
 
 export default function EditInventoryStock() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { updateInventory, getInventoryDetail } = useProducts();
+  const { categories, getCategories } = useCategories();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const [uomForms, setUomForms] = useState<FormStateValueCode>({
     lookup_code: "UOM",
     lookup_value_code: "",
     value: "",
     description: "",
   });
-  const [localSearch, setLocalSearch] = useState("");
 
-  const debouncedSearch = useDebounce(localSearch, 300);
-  const { updateInventory, getInventoryDetail } = useProducts();
-  const { toast } = useToast();
-  const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [form, setForm] = useState<ProductsInventoryDetailField>({
     code: null,
     product_name: null,
@@ -82,10 +55,72 @@ export default function EditInventoryStock() {
     unit_code: null,
     hpp: 0,
     price: 0,
-    vendor_id: null,
+    category_id: null,
+    status: "LIVE",
+    path: null,
   });
-  const [originalForm, setOriginalForm] =
-    useState<ProductsInventoryDetailField | null>(null);
+  const [originalForm, setOriginalForm] = useState<ProductsInventoryDetailField | null>(null);
+
+  // Image handling
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    addValueCode,
+    deleteValueCode,
+    getValueCode,
+    updateValueCode,
+    valueCode,
+  } = useParameter();
+
+  useEffect(() => {
+    getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
+    getCategories({ page: 1, size: 100, search: "" });
+    fetchDetailProduct();
+  }, []);
+
+  const fetchDetailProduct = async () => {
+    try {
+      const response = await getInventoryDetail({ product_unit_id: location?.state });
+      if (response?.status) {
+        const data = response.data;
+        setForm({
+          ...data,
+          product_name: data.product_name ?? data.name ?? null,
+          product_description: data.product_description ?? data.description ?? null,
+          category_id: data.category_id ?? null,
+          status: data.status ?? "LIVE",
+        });
+        setOriginalForm({
+          ...data,
+          product_name: data.product_name ?? data.name ?? null,
+          product_description: data.product_description ?? data.description ?? null,
+          category_id: data.category_id ?? null,
+          status: data.status ?? "LIVE",
+        });
+        if (data.path) setExistingImageUrl(data.path);
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Gagal memuat detail produk", variant: "destructive" });
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setImageFiles((prev) => [...prev, ...files]);
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveNewImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -98,99 +133,56 @@ export default function EditInventoryStock() {
         description: form?.product_description,
         unit_code: form?.unit_code,
         hpp: form?.hpp,
-        vendor_id: form?.vendor_id,
         price: form?.price || 0,
         quantity: form?.total_quantity,
+        category_id: form?.category_id,
+        status: form?.status,
+        path: imageFiles.length > 0 ? imageFiles : undefined,
       });
-      if (response.status) {
-        toast({
-          title: "Berhasil",
-          description: "Produk berhasil diperbarui",
-        });
+
+      if (response?.status) {
+        toast({ title: "Berhasil", description: "Produk berhasil diperbarui" });
         setIsEditMode(false);
         setOriginalForm(form);
+        setImageFiles([]);
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setImagePreviews([]);
       } else {
         toast({
           title: "Gagal",
-          description: response.messages || "Gagal memperbarui Produk",
+          description: response?.messages || "Gagal memperbarui Produk",
           variant: "destructive",
         });
       }
     } catch (error) {
-      toast({
-        title: "Gagal",
-        description: "Terjadi kesalahan saat memperbarui Produk",
-        variant: "destructive",
-      });
+      toast({ title: "Gagal", description: "Terjadi kesalahan saat memperbarui Produk", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (
-    field: keyof ProductsInventoryDetailField,
-    value: any,
-  ) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = (field: keyof ProductsInventoryDetailField, value: any) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleEditToggle = () => {
     if (isEditMode) {
-      // Cancel edit mode, revert to original values
-      if (originalForm) {
-        setForm(originalForm);
-      }
+      if (originalForm) setForm(originalForm);
+      setImageFiles([]);
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+      setImagePreviews([]);
       setIsEditMode(false);
     } else {
-      // Enter edit mode, save original values
       setOriginalForm(form);
       setIsEditMode(true);
     }
   };
 
-  useEffect(() => {
-    fetchDetailProduct();
-  }, []);
-
-  const fetchDetailProduct = async () => {
-    try {
-      const response = await getInventoryDetail({
-        product_unit_id: location?.state,
-      });
-      if (response.status) {
-        setForm(response.data);
-        setOriginalForm(response.data);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Gagal memuat detail produk",
-        variant: "destructive",
-      });
-    }
-  };
   const { user } = useAuth();
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Handle category submit
-   * @returns {Promise<void>}
-   */
-  /*******  529ac62f-fbde-41db-8060-7d0df268a5aa  *******/ const isFinance =
-    user?.responsibilities?.some((role) => role.code === "FINANCE");
-  const isPurchasing = user?.responsibilities?.some(
-    (role) => role.code === "PURCHASING",
-  );
-  const {
-    addValueCode,
-    deleteValueCode,
-    getValueCode,
-    updateValueCode,
-    valueCode,
-  } = useParameter();
-  // const { vendors, getVendors } = useVendors();
+  const isFinance = user?.responsibilities?.some((role) => role.code === "FINANCE");
+  const isPurchasing = user?.responsibilities?.some((role) => role.code === "PURCHASING");
+
+  // ── UOM handlers ──────────────────────────────────────────────────────────
   const handleCategorySubmit = async () => {
     try {
       const newForm = {
@@ -199,64 +191,17 @@ export default function EditInventoryStock() {
         lookup_value_code: uomForms?.value.toUpperCase().replace(/\s+/g, "_"),
       };
       const res = await addValueCode(newForm);
+      if (res.status) {
+        toast({ title: "Berhasil", description: "Satuan baru berhasil ditambahkan." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
+      } else {
+        toast({ title: "Gagal", description: res?.messages || "Gagal menambahkan satuan.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Terjadi kesalahan saat menambahkan satuan.", variant: "destructive" });
+    }
+  };
 
-      if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Kategori baru berhasil ditambahkan.`,
-        });
-        getValueCode({
-          size: 100,
-          page: 1,
-          lookup_code: "UOM",
-        });
-      } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal menambahkan kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error adding category:", error);
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat menambahkan kategori.",
-        variant: "destructive",
-      });
-    }
-  };
-  const handleDeleteCategory = async (id) => {
-    try {
-      const res = await deleteValueCode(id);
-      if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Satuan berhasil dihapus.`,
-          variant: "default",
-        });
-        getValueCode({
-          size: 1000,
-          page: 1,
-          lookup_code: "UOM",
-        });
-      } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal menghapus kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: " Terjadi kesalahan saat menghapus kategori.",
-        variant: "destructive",
-      });
-    }
-  };
   const handleEditValueCode = async (item: any) => {
     try {
       const updatedForm = {
@@ -268,60 +213,38 @@ export default function EditInventoryStock() {
       };
       const res = await updateValueCode(updatedForm);
       if (res.status) {
-        toast({
-          title: "Berhasil",
-          description: `Kategori berhasil diperbarui.`,
-          variant: "default",
-        });
-        getValueCode({
-          size: 100,
-          page: 1,
-          lookup_code: "UOM",
-        });
+        toast({ title: "Berhasil", description: "Satuan berhasil diperbarui." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
       } else {
-        toast({
-          title: "Gagal",
-          description:
-            res?.messages || "Gagal memperbarui kategori. Silakan coba lagi.",
-          variant: "destructive",
-        });
+        toast({ title: "Gagal", description: res?.messages || "Gagal memperbarui satuan.", variant: "destructive" });
       }
-    } catch (error) {
-      console.log("Error edit category:", error);
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat mengedit kategori.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "Terjadi kesalahan saat mengedit satuan.", variant: "destructive" });
     }
   };
-  // const handleGetVendors = async (params) => {
-  //   getVendors(params);
-  // };
-  useEffect(() => {
-    getValueCode({
-      size: 1000,
-      page: 1,
-      lookup_code: "UOM",
-    });
-    // handleGetVendors({
-    //   page: 1,
-    //   size: 10,
-    //   search: debouncedSearch,
-    // });
-  }, [debouncedSearch]);
+
+  const handleDeleteUom = async (id: any) => {
+    try {
+      const res = await deleteValueCode(id);
+      if (res.status) {
+        toast({ title: "Berhasil", description: "Satuan berhasil dihapus." });
+        getValueCode({ size: 1000, page: 1, lookup_code: "UOM" });
+      } else {
+        toast({ title: "Gagal", description: res?.messages || "Gagal menghapus satuan.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Terjadi kesalahan saat menghapus satuan.", variant: "destructive" });
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="w-full md:w-4/5">
-          <h1 className="text-3xl font-bold text-foreground">
-            {form?.product_name}
-          </h1>
-          <p className="text-muted-foreground">kelola produk</p>
+          <h1 className="text-3xl font-bold text-foreground">{form?.product_name || "Detail Produk"}</h1>
+          <p className="text-muted-foreground">Kelola produk</p>
         </div>
 
-        {/* Edit Mode Toggle Button */}
         <div className="flex gap-2">
           <UomModal
             onSubmit={handleCategorySubmit}
@@ -331,30 +254,17 @@ export default function EditInventoryStock() {
           />
           {isEditMode ? (
             <>
-              <Button
-                variant="outline"
-                onClick={handleEditToggle}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={handleEditToggle} disabled={isLoading} className="flex items-center gap-2">
                 <X className="h-4 w-4" />
                 Batal
               </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
+              <Button onClick={handleSubmit} disabled={isLoading} className="flex items-center gap-2">
                 <Save className="h-4 w-4" />
                 {isLoading ? "Menyimpan..." : "Simpan"}
               </Button>
             </>
           ) : (
-            <Button
-              onClick={handleEditToggle}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
+            <Button onClick={handleEditToggle} variant="outline" className="flex items-center gap-2">
               <Edit className="h-4 w-4" />
               Mode Edit
             </Button>
@@ -363,71 +273,79 @@ export default function EditInventoryStock() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-3">
+        {/* Main Form */}
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Informasi Produk
-            </CardTitle>
+            <CardTitle>Informasi Produk</CardTitle>
           </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Code */}
+            <div className="space-y-2">
+              <Label>Kode Produk</Label>
+              <Input value={form.code || ""} disabled placeholder="Kode produk" />
+            </div>
 
-          <CardContent className="space-y-6">
-            {/* Product Information */}
+            {/* Name & Description */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="code">Kode Produk</Label>
-                <Input
-                  id="code"
-                  value={form.code || ""}
-                  disabled
-                  placeholder="Kode produk"
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="name">
-                  Nama Produk{" "}
-                  {isEditMode && <span className="text-red-500">*</span>}
+                  Nama Produk {isEditMode && <span className="text-red-500">*</span>}
                 </Label>
                 <Input
                   id="name"
                   value={form.product_name || ""}
-                  onChange={(e) =>
-                    handleInputChange("product_name", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("product_name", e.target.value)}
                   disabled={!isEditMode}
                   placeholder="Nama produk"
                 />
               </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="product_description">
+                  Deskripsi {isEditMode && <span className="text-red-500">*</span>}
+                </Label>
+                <RichTextEditor
+                  value={form.product_description || ""}
+                  onChange={(html) => handleInputChange("product_description", html)}
+                  placeholder="Tulis deskripsi produk di sini..."
+                  readOnly={!isEditMode}
+                />
+              </div>
             </div>
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                Deskripsi Produk{" "}
-                {isEditMode && <span className="text-red-500">*</span>}
-              </Label>
-              <Input
-                id="product_description"
-                disabled={!isEditMode}
-                value={form.product_description || ""}
-                onChange={(e) =>
-                  handleInputChange("product_description", e.target.value)
-                }
-                placeholder="Masukkan Deskripsi Produk"
-              />
-            </div>
+
+            {/* Category & Unit */}
             <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Kategori</Label>
+                <Select
+                  value={form.category_id?.toString() || ""}
+                  disabled={!isEditMode}
+                  onValueChange={(val) => handleInputChange("category_id", Number(val))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label>Satuan</Label>
                 <Select
-                  value={form.unit_code}
+                  value={form.unit_code || ""}
                   disabled={!isEditMode}
                   onValueChange={(val) => handleInputChange("unit_code", val)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Pilih kategori" />
+                    <SelectValue placeholder="Pilih Satuan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {valueCode.map((item, index) => (
+                    {valueCode.map((item) => (
                       <div
                         key={item.lookup_value_code}
                         className="flex items-center justify-between px-2"
@@ -443,37 +361,25 @@ export default function EditInventoryStock() {
                             setValueForms={setUomForms}
                             isEdit={true}
                             children={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="p-0"
-                              >
+                              <Button variant="ghost" size="icon" className="p-0">
                                 <Upload className="w-4 h-4" />
                               </Button>
                             }
                           />
                           <ConfirmModal
-                            title="Hapus Pesanan"
-                            description={`Apakah kamu yakin ingin menghapus pemasukan${" "}<b>${
-                              item.value
-                            }</b>? Tindakan ini tidak dapat dibatalkan.`}
+                            title="Hapus Satuan"
+                            description={`Apakah kamu yakin ingin menghapus satuan <b>${item.value}</b>?`}
                             confirmText="Iya"
                             cancelText="Batal"
                             variant="outline"
                             showIcon={false}
                             useHTML
                             trigger={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive"
-                              >
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
                                 <Trash2 />
                               </Button>
                             }
-                            onConfirm={() =>
-                              handleDeleteCategory(item.lookup_value_id)
-                            }
+                            onConfirm={() => handleDeleteUom(item.lookup_value_id)}
                           />
                         </div>
                       </div>
@@ -481,78 +387,48 @@ export default function EditInventoryStock() {
                   </SelectContent>
                 </Select>
               </div>
-              {/* <div className="space-y-2 w-full">
-                <label>Vendor</label>
-                <Select
-                  value={form.vendor_id?.toString() || ""}
-                  disabled={!isEditMode}
-                  onValueChange={(value) => {
-                    const selectedVendor = vendors.find(
-                      (v) => v.id.toString() === value,
-                    );
-                    if (selectedVendor) {
-                      handleInputChange("vendor_id", selectedVendor.id);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih Vendor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="p-2">
-                      <Input
-                        placeholder="Cari Vendor..."
-                        value={localSearch}
-                        onChange={(e) => setLocalSearch(e.target.value)}
-                        className="h-8"
-                      />
-                    </div>
+            </div>
 
-                    
-                    {vendors.map((v) => (
-                      <SelectItem key={v.id} value={v.id.toString()}>
-                        {v.name}
-                      </SelectItem>
-                    ))}
-
-                    {vendors.length === 0 && (
-                      <div className="p-2 text-sm text-muted-foreground text-center">
-                        {localSearch
-                          ? "Vendor tidak ditemukan"
-                          : "Tidak ada vendor"}
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div> */}
-
+            {/* Quantity & Status */}
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="total_quantity">
                   Jumlah Stok <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="total_quantity"
-                  type="text"
+                  type="number"
                   value={form.total_quantity}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "total_quantity",
-                      parseInt(e.target.value) || 0,
-                    )
-                  }
+                  onChange={(e) => handleInputChange("total_quantity", parseInt(e.target.value) || 0)}
                   disabled={!isEditMode}
                   placeholder="Masukkan jumlah stok"
                 />
-                <p className="text-sm text-muted-foreground">
-                  Stok saat ini: {form.total_quantity}
-                </p>
+                <p className="text-sm text-muted-foreground">Stok saat ini: {form.total_quantity}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status Produk</Label>
+                <Select
+                  value={form.status || "LIVE"}
+                  disabled={!isEditMode}
+                  onValueChange={(val) => handleInputChange("status", val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LIVE">LIVE (Aktif)</SelectItem>
+                    <SelectItem value="DRAFT">DRAFT</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            {/* Price Product Information */}
+
+            {/* Price */}
             <div className="grid gap-4 md:grid-cols-2">
               {isPurchasing && (
                 <div className="space-y-2">
-                  <Label htmlFor="hpp">Harga Modal Satuan</Label>
+                  <Label htmlFor="hpp">Harga Modal (HPP)</Label>
                   <PriceInput
                     value={form.hpp || null}
                     onChange={(val) => handleInputChange("hpp", val)}
@@ -560,12 +436,10 @@ export default function EditInventoryStock() {
                   />
                 </div>
               )}
-
               {isFinance && (
                 <div className="space-y-2">
                   <Label htmlFor="price">
-                    Harga Jual Satuan{" "}
-                    {isEditMode && <span className="text-red-500">*</span>}
+                    Harga Jual {isEditMode && <span className="text-red-500">*</span>}
                   </Label>
                   <PriceInput
                     value={form.price || null}
@@ -575,6 +449,80 @@ export default function EditInventoryStock() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Image Panel */}
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Foto Produk</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Existing image */}
+            {existingImageUrl && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Foto saat ini</p>
+                <img
+                  src={existingImageUrl}
+                  alt="existing"
+                  className="w-full h-32 object-cover rounded-lg border border-primary/10"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Upload area (only in edit mode) */}
+            {isEditMode && (
+              <div
+                className="border-2 border-dashed border-primary/30 rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/5 transition"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="h-7 w-7 text-primary/50" />
+                <p className="text-sm text-muted-foreground text-center">
+                  Upload foto baru
+                  <br />
+                  <span className="text-xs">Bisa multiple gambar</span>
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+              </div>
+            )}
+
+            {/* New image previews */}
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={src}
+                      alt={`preview-${idx}`}
+                      className="w-full h-20 object-cover rounded-lg border border-primary/10"
+                    />
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(idx)}
+                        className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!existingImageUrl && imagePreviews.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center">Belum ada foto produk</p>
+            )}
           </CardContent>
         </Card>
       </div>
