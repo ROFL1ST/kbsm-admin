@@ -144,6 +144,7 @@ export interface CreateProductsInventoryKey {
   category_id: number;
   status?: string;
   path?: File | File[];
+  is_best_seller: boolean;
 }
 export interface UpdateProductsInventoryKey {
   product_id: number;
@@ -158,6 +159,7 @@ export interface UpdateProductsInventoryKey {
   category_id: number;
   status?: string;
   path?: File | File[];
+  is_best_seller: boolean;
 }
 
 // ─── Detail form shape (used by Create/Edit pages) ───────────────────────────
@@ -176,6 +178,7 @@ export interface ProductsInventoryDetailField {
   category_id: number | null;
   status?: string | null;
   path?: File | File[] | null;
+  is_best_seller: boolean;
 }
 
 // ─── Restock ─────────────────────────────────────────────────────────────────
@@ -340,7 +343,6 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // ── GET /products (list with filters) ────────────────────────────────────
   const getInventory = async (params: ProductsInventoryKey): Promise<ApiResponse | null> => {
     try {
-      // Remove empty/undefined params so they are not sent to the API
       const cleanParams: Record<string, any> = {};
       Object.entries(params).forEach(([key, val]) => {
         if (val !== undefined && val !== null && val !== "") {
@@ -387,6 +389,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       formData.append("price", String(params.price));
       formData.append("total_quantity", String(params.quantity));
       formData.append("category_id", String(params.category_id));
+      formData.append("is_best_seller", String(params.is_best_seller));
       if (params.status) formData.append("status", params.status);
       if (params.path) {
         if (Array.isArray(params.path)) {
@@ -417,6 +420,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       formData.append("price", String(params.price));
       formData.append("total_quantity", String(params.total_quantity));
       formData.append("category_id", String(params.category_id));
+      formData.append("is_best_seller", String(params.is_best_seller));
       if (params.status) formData.append("status", params.status);
       if (params.path) {
         if (Array.isArray(params.path)) {

@@ -13,6 +13,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import PriceInput from "@/components/ui/PriceInput";
@@ -58,6 +59,7 @@ export default function EditInventoryStock() {
     category_id: null,
     status: "LIVE",
     path: null,
+    is_best_seller: false,
   });
   const [originalForm, setOriginalForm] = useState<ProductsInventoryDetailField | null>(null);
 
@@ -92,6 +94,7 @@ export default function EditInventoryStock() {
           product_description: data.product_description ?? data.description ?? null,
           category_id: data.category_id ?? null,
           status: data.status ?? "LIVE",
+          is_best_seller: data.is_best_seller ?? false,
         });
         setOriginalForm({
           ...data,
@@ -99,6 +102,7 @@ export default function EditInventoryStock() {
           product_description: data.product_description ?? data.description ?? null,
           category_id: data.category_id ?? null,
           status: data.status ?? "LIVE",
+          is_best_seller: data.is_best_seller ?? false,
         });
         if (data.path) setExistingImageUrl(data.path);
       }
@@ -137,6 +141,7 @@ export default function EditInventoryStock() {
         quantity: form?.total_quantity,
         category_id: form?.category_id,
         status: form?.status,
+        is_best_seller: form?.is_best_seller ?? false,
         path: imageFiles.length > 0 ? imageFiles : undefined,
       });
 
@@ -424,6 +429,21 @@ export default function EditInventoryStock() {
               </div>
             </div>
 
+            {/* Best Seller Toggle */}
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label>Best Seller</Label>
+                <p className="text-sm text-muted-foreground">
+                  Tandai produk ini sebagai best seller
+                </p>
+              </div>
+              <Switch
+                checked={form.is_best_seller ?? false}
+                onCheckedChange={(checked) => handleInputChange("is_best_seller", checked)}
+                disabled={!isEditMode}
+              />
+            </div>
+
             {/* Price */}
             <div className="grid gap-4 md:grid-cols-2">
               {isPurchasing && (
@@ -458,7 +478,6 @@ export default function EditInventoryStock() {
             <CardTitle>Foto Produk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Existing image */}
             {existingImageUrl && (
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Foto saat ini</p>
@@ -473,7 +492,6 @@ export default function EditInventoryStock() {
               </div>
             )}
 
-            {/* Upload area (only in edit mode) */}
             {isEditMode && (
               <div
                 className="border-2 border-dashed border-primary/30 rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-primary/5 transition"
@@ -496,7 +514,6 @@ export default function EditInventoryStock() {
               </div>
             )}
 
-            {/* New image previews */}
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {imagePreviews.map((src, idx) => (

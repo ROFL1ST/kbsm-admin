@@ -13,6 +13,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Save, Upload, X, ImagePlus, Trash2 } from "lucide-react";
@@ -49,6 +50,7 @@ export default function CreateInventoryStock() {
     category_id: null,
     status: "LIVE",
     path: null,
+    is_best_seller: false,
   });
 
   // Image preview state
@@ -87,7 +89,6 @@ export default function CreateInventoryStock() {
     const newPreviews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...newPreviews]);
 
-    // Reset input so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -135,6 +136,7 @@ export default function CreateInventoryStock() {
         total_quantity: form.total_quantity,
         category_id: form.category_id,
         status: form.status || "LIVE",
+        is_best_seller: form.is_best_seller ?? false,
         path: imageFiles.length > 0 ? imageFiles : undefined,
       });
 
@@ -175,6 +177,7 @@ export default function CreateInventoryStock() {
       category_id: null,
       status: "LIVE",
       path: null,
+      is_best_seller: false,
     });
     imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     setImageFiles([]);
@@ -408,6 +411,20 @@ export default function CreateInventoryStock() {
               </div>
             </div>
 
+            {/* Best Seller Toggle */}
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label>Best Seller</Label>
+                <p className="text-sm text-muted-foreground">
+                  Tandai produk ini sebagai best seller
+                </p>
+              </div>
+              <Switch
+                checked={form.is_best_seller ?? false}
+                onCheckedChange={(checked) => handleInputChange("is_best_seller", checked)}
+              />
+            </div>
+
             {/* Price Information */}
             <div className="grid gap-4 md:grid-cols-2">
               {isPurchasing && (
@@ -444,7 +461,6 @@ export default function CreateInventoryStock() {
             <CardTitle>Foto Produk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Upload Button */}
             <div
               className="border-2 border-dashed border-primary/30 rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/5 transition"
               onClick={() => fileInputRef.current?.click()}
@@ -465,7 +481,6 @@ export default function CreateInventoryStock() {
               />
             </div>
 
-            {/* Preview */}
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {imagePreviews.map((src, idx) => (
