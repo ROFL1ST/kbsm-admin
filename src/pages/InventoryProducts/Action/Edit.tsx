@@ -153,9 +153,12 @@ export default function EditInventoryStock() {
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
       } else {
+        const errorMessages = Array.isArray(response?.messages)
+          ? response.messages.map((m: any) => m.message).join(", ")
+          : response?.messages || "Gagal memperbarui Produk";
         toast({
           title: "Gagal",
-          description: response?.messages || "Gagal memperbarui Produk",
+          description: errorMessages,
           variant: "destructive",
         });
       }

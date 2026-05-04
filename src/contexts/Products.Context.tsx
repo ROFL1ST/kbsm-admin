@@ -387,7 +387,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       formData.append("unit_code", params.unit_code);
       formData.append("hpp", String(params.hpp));
       formData.append("price", String(params.price));
-      formData.append("total_quantity", String(params.quantity));
+      formData.append("quantity", String(params.quantity));
       formData.append("category_id", String(params.category_id));
       formData.append("is_best_seller", String(params.is_best_seller));
       if (params.status) formData.append("status", params.status);
