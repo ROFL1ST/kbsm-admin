@@ -28,6 +28,10 @@ import { FormStateValueCode, useParameter } from "@/contexts/Parameter.context";
 import { ConfirmModal } from "@/components/ui/ConfimModal";
 import { useCategories } from "@/contexts/Categories.Context";
 
+type CreateForm = Omit<ProductsInventoryDetailField, "total_quantity"> & {
+  total_quantity: number | null;
+};
+
 export default function CreateInventoryStock() {
   const navigate = useNavigate();
   const { createInventory } = useProducts();
@@ -35,7 +39,7 @@ export default function CreateInventoryStock() {
   const { categories, getCategories } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
 
-  const [form, setForm] = useState<ProductsInventoryDetailField>({
+  const [form, setForm] = useState<CreateForm>({
     code: null,
     product_name: null,
     product_description: null,
@@ -45,7 +49,7 @@ export default function CreateInventoryStock() {
     hpp: 0,
     price: 0,
     product_unit_id: null,
-    total_quantity: 0,
+    total_quantity: null,
     unit_code: null,
     category_id: null,
     status: "LIVE",
@@ -82,13 +86,9 @@ export default function CreateInventoryStock() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
-    const newFiles = [...imageFiles, ...files];
-    setImageFiles(newFiles);
-
+    setImageFiles((prev) => [...prev, ...files]);
     const newPreviews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews((prev) => [...prev, ...newPreviews]);
-
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -98,7 +98,7 @@ export default function CreateInventoryStock() {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ── Submit ───────────────────────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!form.product_name?.trim()) {
       toast({ title: "Gagal", description: "Nama produk harus diisi", variant: "destructive" });
@@ -120,7 +120,7 @@ export default function CreateInventoryStock() {
       toast({ title: "Gagal", description: "Harga pokok tidak boleh kosong", variant: "destructive" });
       return;
     }
-    if (form.total_quantity < 0) {
+    if (form.total_quantity !== null && form.total_quantity < 0) {
       toast({ title: "Gagal", description: "Quantity tidak boleh negatif", variant: "destructive" });
       return;
     }
@@ -133,7 +133,7 @@ export default function CreateInventoryStock() {
         unit_code: form.unit_code,
         hpp: form.hpp,
         price: form.price || 0,
-        total_quantity: form.total_quantity,
+        total_quantity: form.total_quantity ?? 0,
         category_id: form.category_id,
         status: form.status || "LIVE",
         is_best_seller: form.is_best_seller ?? false,
@@ -144,9 +144,12 @@ export default function CreateInventoryStock() {
         toast({ title: "Berhasil", description: "Produk berhasil dibuat" });
         navigate(-1);
       } else {
+        const errorMessages = Array.isArray(response?.messages)
+          ? response.messages.map((m: any) => m.message).join(", ")
+          : response?.messages || "Gagal membuat produk";
         toast({
           title: "Gagal",
-          description: response?.messages || "Gagal membuat produk",
+          description: errorMessages,
           variant: "destructive",
         });
       }
@@ -157,7 +160,7 @@ export default function CreateInventoryStock() {
     }
   };
 
-  const handleInputChange = (field: keyof ProductsInventoryDetailField, value: any) => {
+  const handleInputChange = (field: keyof CreateForm, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -172,7 +175,7 @@ export default function CreateInventoryStock() {
       product_unit_id: null,
       hpp: 0,
       price: 0,
-      total_quantity: 0,
+      total_quantity: null,
       unit_code: null,
       category_id: null,
       status: "LIVE",
@@ -188,7 +191,7 @@ export default function CreateInventoryStock() {
   const isFinance = user?.responsibilities?.some((role) => role.code === "FINANCE");
   const isPurchasing = user?.responsibilities?.some((role) => role.code === "PURCHASING");
 
-  // ── UOM handlers ──────────────────────────────────────────────────────────
+  // ── UOM handlers ──────────────────────────────────────────────────
   const handleCategorySubmit = async () => {
     try {
       const newForm = {
@@ -386,8 +389,11 @@ export default function CreateInventoryStock() {
                 <Input
                   id="total_quantity"
                   type="number"
-                  value={form.total_quantity}
-                  onChange={(e) => handleInputChange("total_quantity", parseInt(e.target.value) || 0)}
+                  value={form.total_quantity ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    handleInputChange("total_quantity", raw === "" ? null : parseInt(raw, 10));
+                  }}
                   min={0}
                   placeholder="Masukkan jumlah stok awal"
                 />
