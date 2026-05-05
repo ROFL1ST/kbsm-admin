@@ -9,11 +9,10 @@ import {
   DollarSign,
   CreditCard,
   Users,
-  FileText,
   Settings,
   LogOut,
-  Car,
   Landmark,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import ksmLogo from "../../assets/ksm_1.png";
 import { useCompany } from "@/contexts/Company.Context";
+
 const mainNavigation = [
   {
     title: "Dashboard",
@@ -42,6 +42,12 @@ const mainNavigation = [
     href: "/stock-list",
     icon: Package,
     description: "Kelola Inventori",
+  },
+  {
+    title: "Blog",
+    href: "/blog",
+    icon: BookOpen,
+    description: "Kelola Artikel & Konten",
   },
 ];
 
@@ -58,33 +64,8 @@ const warehouseNavigation = [
     icon: TrendingDown,
     description: "Demand Management",
   },
-  // {
-  //   title: "Produk Distribusi",
-  //   href: "/product-distributions",
-  //   icon: TrendingDown,
-  //   description: "Product Distributions",
-  // },
 ];
-// const salesNavigation = [
-//   {
-//     title: "Buat Pesanan",
-//     href: "/po-clients",
-//     icon: TrendingUp,
-//     description: "Clients Order",
-//   },
-//   {
-//     title: "Penagihan Klien",
-//     href: "/po-client-collections",
-//     icon: Users,
-//     description: "Client Collections",
-//   },
-//   {
-//     title: "Data Klien",
-//     href: "/clients",
-//     icon: Users,
-//     description: "Client Management",
-//   },
-// ];
+
 const adminNavigation = [
   {
     title: "Pesanan Klien",
@@ -125,50 +106,7 @@ const financeNavigation = [
     icon: Landmark,
     description: "Kelola Rekening Bank",
   },
-  // {
-  //   title: "Pesanan Perusahaan",
-  //   href: "/po-vendors-received",
-  //   icon: TrendingUp,
-  //   description: "Vendor Order received",
-  // },
 ];
-// const purchasingNavigation = [
-//   {
-//     title: "Buat Pesanan",
-//     href: "/po-vendors",
-//     icon: TrendingUp,
-//     description: "Vendor Order",
-//   },
-//   {
-//     title: "supplier",
-//     href: "/vendors",
-//     icon: TrendingUp,
-//     description: "Data Vendor",
-//   },
-//   {
-//     title: "Inventori Barang",
-//     href: "/stock-list",
-//     icon: Package,
-//     description: "Kelola Inventori",
-//   },
-// ];
-
-// const managementNavigation = [
-//   {
-//     title: "Laporan",
-//     href: "/reports",
-//     icon: FileText,
-//     description: "Export & Analytics",
-//   },
-// ];
-// const driverNavigation = [
-//   {
-//     title: "Pengiriman",
-//     href: "/activity-driver",
-//     icon: Car,
-//     description: "Activity Delivery",
-//   },
-// ];
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
@@ -193,6 +131,7 @@ export function AppSidebar() {
     navigate("/login");
   };
   const { company } = useCompany();
+
   return (
     <Sidebar
       className={cn(
@@ -227,9 +166,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {mainNavigation.map((item) => (
                   <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
-                    <item.icon
-                      className={cn("h-4 w-4", !collapsed && "mr-3")}
-                    />
+                    <item.icon className={cn("h-4 w-4", !collapsed && "mr-3")} />
                     {!collapsed && (
                       <div className="flex-1 min-w-0">
                         <p className="truncate">{item.title}</p>
@@ -241,6 +178,7 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
           {/* Warehouse */}
           {hasResponsibility("WAREHOUSE") && (
             <SidebarGroup>
@@ -249,15 +187,11 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {warehouseNavigation.map((item) => (
                     <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
+                      <item.icon className={cn("h-4 w-4", !collapsed && "mr-3")} />
                       {!collapsed && (
                         <div className="flex-1 min-w-0">
                           <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
+                          <p className="text-xs truncate">{item.description}</p>
                         </div>
                       )}
                     </NavLink>
@@ -266,6 +200,7 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
+
           {/* Finance */}
           {hasResponsibility("FINANCE") && (
             <SidebarGroup>
@@ -274,15 +209,11 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {financeNavigation.map((item) => (
                     <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
+                      <item.icon className={cn("h-4 w-4", !collapsed && "mr-3")} />
                       {!collapsed && (
                         <div className="flex-1 min-w-0">
                           <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
+                          <p className="text-xs truncate">{item.description}</p>
                         </div>
                       )}
                     </NavLink>
@@ -291,107 +222,7 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
-          {/* Finance */}
-          {/* {hasResponsibility("PURCHASING") && (
-            <SidebarGroup>
-              {!collapsed && <SidebarGroupLabel>Purchasing</SidebarGroupLabel>}
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {purchasingNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
-                      {!collapsed && (
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
-                        </div>
-                      )}
-                    </NavLink>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )} */}
-          {/* Management - Only for admin/manager */}
-          {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
-          {/* <SidebarGroup>
-            {!collapsed && <SidebarGroupLabel>Manajemen</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {managementNavigation.map((item) => (
-                  <NavLink to={item.href} className={getNavLinkClass}>
-                    <item.icon
-                      className={cn("h-4 w-4", !collapsed && "mr-3")}
-                    />
-                    {!collapsed && (
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate">{item.title}</p>
-                        <p className="text-xs  truncate">{item.description}</p>
-                      </div>
-                    )}
-                  </NavLink>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
-          {/* )} */}
-          {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
-          {/* driver */}
-          {/* {hasResponsibility("DRIVER") && (
-            <SidebarGroup>
-              {!collapsed && <SidebarGroupLabel>Driver</SidebarGroupLabel>}
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {driverNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
-                      {!collapsed && (
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
-                        </div>
-                      )}
-                    </NavLink>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )} */}
-          {/* Sales */}
-          {/* {hasResponsibility("SALES") && (
-            <SidebarGroup>
-              {!collapsed && <SidebarGroupLabel>Sales</SidebarGroupLabel>}
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {salesNavigation.map((item) => (
-                    <NavLink to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
-                      {!collapsed && (
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
-                        </div>
-                      )}
-                    </NavLink>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )} */}
-          {/* )} */}
-          {/* {(user?.role === "admin" || user?.role === "manager") && ( */}
+
           {/* Admin */}
           {hasResponsibility("ADMIN") && (
             <SidebarGroup>
@@ -400,15 +231,11 @@ export function AppSidebar() {
                 <SidebarMenu>
                   {adminNavigation.map((item) => (
                     <NavLink key={item.href} to={item.href} className={getNavLinkClass}>
-                      <item.icon
-                        className={cn("h-4 w-4", !collapsed && "mr-3")}
-                      />
+                      <item.icon className={cn("h-4 w-4", !collapsed && "mr-3")} />
                       {!collapsed && (
                         <div className="flex-1 min-w-0">
                           <p className="truncate">{item.title}</p>
-                          <p className="text-xs  truncate">
-                            {item.description}
-                          </p>
+                          <p className="text-xs truncate">{item.description}</p>
                         </div>
                       )}
                     </NavLink>
@@ -417,31 +244,10 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </SidebarGroup>
           )}
-          {/* )} */}
         </SidebarContent>
 
-        {/* User Profile & Logout */}
+        {/* Logout */}
         <div className="p-3 border-t border-sidebar-border">
-          {/* {!collapsed && user && (
-            <div className="mb-3 p-3 bg-sidebar-accent rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold text-white">
-                    {user.name.charAt(0)}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/60 capitalize truncate">
-                    {user.role}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )} */}
-
           <Button
             variant="ghost"
             size={collapsed ? "icon" : "sm"}
