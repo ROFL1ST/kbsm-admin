@@ -89,6 +89,9 @@ export default function CreateBlogPage() {
     if (!form.title.trim()) {
       toast({ title: "Gagal", description: "Judul artikel harus diisi", variant: "destructive" }); return;
     }
+    if (!form.excerpt.trim()) {
+      toast({ title: "Gagal", description: "Ringkasan artikel harus diisi", variant: "destructive" }); return;
+    }
     if (!form.content.trim()) {
       toast({ title: "Gagal", description: "Konten artikel harus diisi", variant: "destructive" }); return;
     }
@@ -159,7 +162,7 @@ export default function CreateBlogPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Ringkasan (Excerpt)</Label>
+                <Label>Ringkasan (Excerpt) <span className="text-red-500">*</span></Label>
                 <Textarea
                   placeholder="Tulis ringkasan singkat artikel..."
                   value={form.excerpt}
