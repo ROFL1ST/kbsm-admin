@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -170,7 +170,11 @@ export default function BlogCategoryPage() {
                     </TableCell>
                     <TableCell className="text-right pr-4">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(item)}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <ConfirmModal
@@ -198,6 +202,7 @@ export default function BlogCategoryPage() {
         </CardContent>
       </Card>
 
+      {/* Pagination */}
       {totalPage > 1 && (
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
@@ -212,6 +217,7 @@ export default function BlogCategoryPage() {
         </div>
       )}
 
+      {/* Modal Create / Edit */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -228,8 +234,12 @@ export default function BlogCategoryPage() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isLoading}>Batal</Button>
-            <Button onClick={handleSubmit} disabled={isLoading}>{isLoading ? "Menyimpan..." : "Simpan"}</Button>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isLoading}>
+              Batal
+            </Button>
+            <Button onClick={handleSubmit} disabled={isLoading}>
+              {isLoading ? "Menyimpan..." : "Simpan"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
