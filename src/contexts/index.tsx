@@ -12,6 +12,7 @@ import { CategoriesProvider } from "./Categories.Context";
 import { BanksProvider } from "./Banks.Context";
 import { DiscountsProvider } from "./Discounts.Context";
 import { ReviewsProvider } from "./Reviews.Context";
+import { BlogProvider } from "./Blog.Context";
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -29,7 +30,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
                       <BanksProvider>
                         <ParameterProvider>
                           <CompanyProvider>
-                            <FinanceProvider>{children}</FinanceProvider>
+                            <FinanceProvider>
+                              <BlogProvider>{children}</BlogProvider>
+                            </FinanceProvider>
                           </CompanyProvider>
                         </ParameterProvider>
                       </BanksProvider>

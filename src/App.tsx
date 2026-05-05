@@ -75,18 +75,26 @@ import ManageBanks from "./pages/Finance/ManageBanks";
 import ManageDiscounts from "./pages/InventoryProducts/ManageDiscounts";
 import ManageReviews from "./pages/InventoryProducts/ManageReviews";
 import ProductsPreparationPacking from "./pages/Products/ProductsPreparationPacking";
+import BlogPage from "./pages/Blog";
+import BlogCategoryPage from "./pages/Blog/CategoryBlog";
+import CreateBlogPage from "./pages/Blog/Action/Create";
+import EditBlogPage from "./pages/Blog/Action/Edit";
 
 const queryClient = new QueryClient();
 
 const routeResponsibilities: Record<string, string[]> = {
-  // ðŸ“Š Main (tidak divalidasi)
+  // 📊 Main (tidak divalidasi)
   "/dashboard": [],
   "/stock-list": [],
   "/profile": [],
   "/settings": [],
   "/notifications": [],
+  "/blog": [],
+  "/blog/category": [],
+  "/blog/create": [],
+  "/blog/edit": [],
 
-  // ðŸ§‘â€ðŸ’¼ Admin
+  // 🧑‍💼 Admin
   "/users": ["ADMIN"],
   "/users/edit": ["ADMIN"],
   "/users/generate-user": ["ADMIN"],
@@ -94,14 +102,14 @@ const routeResponsibilities: Record<string, string[]> = {
   "/review-order-client": ["ADMIN", "FINANCE"],
   "/reports": ["ADMIN"],
 
-  // ðŸ’° Finance
+  // 💰 Finance
   "/finance-in": ["FINANCE"],
   "/finance-out": ["FINANCE"],
   "/manage-banks": ["FINANCE"],
   "/po-vendors-received": ["FINANCE"],
   "/po-vendors-received/edit": ["FINANCE"],
 
-  // ðŸ’° Purchasing
+  // 💰 Purchasing
   "/po-vendors": ["PURCHASING"],
   "/po-vendors/edit": ["PURCHASING"],
   "/po-vendors/generate-po": ["PURCHASING"],
@@ -109,15 +117,15 @@ const routeResponsibilities: Record<string, string[]> = {
   "/vendors/edit": ["PURCHASING"],
   "/vendors/create": ["PURCHASING"],
 
-  // ðŸ§¾ Sales
+  // 🧾 Sales
   "/po-clients": ["SALES"],
   "/po-clients/edit": ["SALES"],
   "/po-clients/generate-po": ["SALES"],
 
-  // ðŸ§¾ Collection
+  // 🧾 Collection
   "/po-client-collections": ["COLLECTION", "SALES"],
 
-  // ðŸšš Warehouse / Logistik
+  // 🚚 Warehouse / Logistik
   "/incoming": ["WAREHOUSE"],
   "/outgoing": ["WAREHOUSE"],
   "/preparation-packing": ["WAREHOUSE"],
@@ -147,7 +155,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       const path = location.pathname;
       const required = routeResponsibilities[path] || [];
 
-      // Dashboard dll tidak perlu validasi
       if (required.length === 0) {
         setHasAccess(true);
         return;
@@ -186,6 +193,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return <>{children}</>;
 };
+
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { checkAuth } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -210,7 +218,6 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Jika user sudah login, arahkan ke dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -228,10 +235,8 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <Routes>
-              {/* Redirect root to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-              {/* Public Routes */}
               <Route
                 path="/login"
                 element={
@@ -241,7 +246,6 @@ const App = () => (
                 }
               />
 
-              {/* Protected Routes */}
               <Route
                 path="/*"
                 element={
@@ -252,26 +256,18 @@ const App = () => (
               >
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="stock-list" element={<StockList />} />
-                <Route
-                  path="stock-list/edit"
-                  element={<EditInventoryStock />}
-                />
-                <Route
-                  path="stock-list/create"
-                  element={<CreateInventoryStock />}
-                />
-                <Route
-                  path="stock-list/manage-categories"
-                  element={<ManageCategories />}
-                />
-                <Route
-                  path="stock-list/manage-discounts"
-                  element={<ManageDiscounts />}
-                />
-                <Route
-                  path="stock-list/manage-reviews"
-                  element={<ManageReviews />}
-                />
+                <Route path="stock-list/edit" element={<EditInventoryStock />} />
+                <Route path="stock-list/create" element={<CreateInventoryStock />} />
+                <Route path="stock-list/manage-categories" element={<ManageCategories />} />
+                <Route path="stock-list/manage-discounts" element={<ManageDiscounts />} />
+                <Route path="stock-list/manage-reviews" element={<ManageReviews />} />
+
+                {/* Blog */}
+                <Route path="blog" element={<BlogPage />} />
+                <Route path="blog/category" element={<BlogCategoryPage />} />
+                <Route path="blog/create" element={<CreateBlogPage />} />
+                <Route path="blog/edit" element={<EditBlogPage />} />
+
                 <Route path="outgoing" element={<ProductOuts />} />
                 <Route path="finance-in" element={<FinanceInPage />} />
                 <Route path="finance" element={<Finance />} />
@@ -283,20 +279,10 @@ const App = () => (
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="po-clients" element={<PurchaseOrderClients />} />
-                <Route
-                  path="po-client-collections"
-                  element={<PurchaseOrderClientCollection />}
-                />
-
-                <Route
-                  path="po-client-collection/detail"
-                  element={<PurchaseOrderClientCollectionDetail />}
-                />
+                <Route path="po-client-collections" element={<PurchaseOrderClientCollection />} />
+                <Route path="po-client-collection/detail" element={<PurchaseOrderClientCollectionDetail />} />
                 <Route path="po-vendors" element={<PurchaseOrderVendors />} />
-                <Route
-                  path="po-vendors-received"
-                  element={<PurchaseOrderVendorsReceived />}
-                />
+                <Route path="po-vendors-received" element={<PurchaseOrderVendorsReceived />} />
                 <Route path="activity-driver" element={<DeliveryHistories />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="clients/create" element={<CreateClientPage />} />
@@ -304,118 +290,37 @@ const App = () => (
                 <Route path="vendors" element={<VendorsPage />} />
                 <Route path="vendors/create" element={<CreateClientPage />} />
                 <Route path="vendors/edit" element={<EditClientPage />} />
-
-                <Route
-                  path="finance-in/create"
-                  element={<CreateFinanceInOutPage />}
-                />
-                <Route
-                  path="finance-out/create"
-                  element={<CreateFinanceInOutPage />}
-                />
-                <Route
-                  path="finance-in/detail"
-                  element={<EditFinanceInOutPage />}
-                />
-                <Route
-                  path="finance-out/detail"
-                  element={<EditFinanceInOutPage />}
-                />
-                <Route
-                  path="activity-driver/detail"
-                  element={<DeliveryHistoryDetail />}
-                />
-                <Route
-                  path="activity-driver/detail/return"
-                  element={<DeliveryHistoryDetailReturn />}
-                />
-                <Route
-                  path="manage-adjusment-products"
-                  element={<ProductManageFixingOrderClients />}
-                />
-                <Route
-                  path="manage-adjusment-products-analyze"
-                  element={<AllProductManageFixingOrderClients />}
-                />
-                <Route
-                  path="manage-adjusment-products/create"
-                  element={<CreateProductManageFixingOrderClient />}
-                />
-                <Route
-                  path="manage-adjusment-products/update"
-                  element={<UpdateProductManageFixingOrderClient />}
-                />
-                <Route
-                  path="incoming/loading/detail"
-                  element={<ProductsLoadingDetail />}
-                />
-                <Route
-                  path="incoming/received/detail"
-                  element={<ProductsReceivedDetail />}
-                />
-                <Route
-                  path="incoming/loading"
-                  element={<PurchaseOrderLoading />}
-                />
-                <Route
-                  path="incoming/received"
-                  element={<PurchaseOrderReceived />}
-                />
-                <Route
-                  path="preparation-packing"
-                  element={<ProductsPreparationPacking />}
-                />
-                <Route
-                  path="incoming/fixing-order-clients"
-                  element={<ProductFixingOrderClients />}
-                />
-                <Route
-                  path="incoming/fixing-order-clients/detail"
-                  element={<ProductFixingOrderClientDetail />}
-                />
-                <Route
-                  path="incoming/fixing-order-clients/detail/update"
-                  element={<VerificationProductManageFixingOrderClient />}
-                />
+                <Route path="finance-in/create" element={<CreateFinanceInOutPage />} />
+                <Route path="finance-out/create" element={<CreateFinanceInOutPage />} />
+                <Route path="finance-in/detail" element={<EditFinanceInOutPage />} />
+                <Route path="finance-out/detail" element={<EditFinanceInOutPage />} />
+                <Route path="activity-driver/detail" element={<DeliveryHistoryDetail />} />
+                <Route path="activity-driver/detail/return" element={<DeliveryHistoryDetailReturn />} />
+                <Route path="manage-adjusment-products" element={<ProductManageFixingOrderClients />} />
+                <Route path="manage-adjusment-products-analyze" element={<AllProductManageFixingOrderClients />} />
+                <Route path="manage-adjusment-products/create" element={<CreateProductManageFixingOrderClient />} />
+                <Route path="manage-adjusment-products/update" element={<UpdateProductManageFixingOrderClient />} />
+                <Route path="incoming/loading/detail" element={<ProductsLoadingDetail />} />
+                <Route path="incoming/received/detail" element={<ProductsReceivedDetail />} />
+                <Route path="incoming/loading" element={<PurchaseOrderLoading />} />
+                <Route path="incoming/received" element={<PurchaseOrderReceived />} />
+                <Route path="preparation-packing" element={<ProductsPreparationPacking />} />
+                <Route path="incoming/fixing-order-clients" element={<ProductFixingOrderClients />} />
+                <Route path="incoming/fixing-order-clients/detail" element={<ProductFixingOrderClientDetail />} />
+                <Route path="incoming/fixing-order-clients/detail/update" element={<VerificationProductManageFixingOrderClient />} />
                 <Route path="incoming" element={<ProductsIn />} />
-
-                <Route
-                  path="po-clients/edit"
-                  element={<EditPurchaseOrderClient />}
-                />
-                <Route
-                  path="po-vendors-received/edit"
-                  element={<ReviewPurchaseOrderVendorDetail />}
-                />
-                <Route
-                  path="po-vendors/edit"
-                  element={<EditPurchaseOrderVendorPurchasing />}
-                />
+                <Route path="po-clients/edit" element={<EditPurchaseOrderClient />} />
+                <Route path="po-vendors-received/edit" element={<ReviewPurchaseOrderVendorDetail />} />
+                <Route path="po-vendors/edit" element={<EditPurchaseOrderVendorPurchasing />} />
                 <Route path="users/edit" element={<ReviewUserDetail />} />
-                <Route
-                  path="order-clients"
-                  element={<ReviewPurchaseOrderClients />}
-                />
-                <Route
-                  path="review-order-client"
-                  element={<ReviewPurchaseOrderClientDetail />}
-                />
-                <Route
-                  path="product-distributions"
-                  element={<ProductDistributions />}
-                />
-                <Route
-                  path="po-clients/generate-po"
-                  element={<CreatePurchaseOrderClient />}
-                />
-                <Route
-                  path="po-vendors/generate-po"
-                  element={<CreatePurchaseOrderVendor />}
-                />
+                <Route path="order-clients" element={<ReviewPurchaseOrderClients />} />
+                <Route path="review-order-client" element={<ReviewPurchaseOrderClientDetail />} />
+                <Route path="product-distributions" element={<ProductDistributions />} />
+                <Route path="po-clients/generate-po" element={<CreatePurchaseOrderClient />} />
+                <Route path="po-vendors/generate-po" element={<CreatePurchaseOrderVendor />} />
                 <Route path="users/generate-user" element={<CreateUser />} />
               </Route>
 
-              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
