@@ -31,81 +31,26 @@ import ksmLogo from "../../assets/ksm_1.png";
 import { useCompany } from "@/contexts/Company.Context";
 
 const mainNavigation = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    description: "Overview & Analytics",
-  },
-  {
-    title: "Inventori Barang",
-    href: "/stock-list",
-    icon: Package,
-    description: "Kelola Inventori",
-  },
-  {
-    title: "Blog",
-    href: "/blog",
-    icon: BookOpen,
-    description: "Kelola Artikel & Konten",
-  },
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Overview & Analytics" },
+  { title: "Inventori Barang", href: "/stock-list", icon: Package, description: "Kelola Inventori" },
+  { title: "Blog", href: "/blog", icon: BookOpen, description: "Kelola Artikel & Konten" },
 ];
 
 const warehouseNavigation = [
-  {
-    title: "Barang Masuk",
-    href: "/incoming",
-    icon: TrendingUp,
-    description: "Supply Management",
-  },
-  {
-    title: "Barang Keluar",
-    href: "/outgoing",
-    icon: TrendingDown,
-    description: "Demand Management",
-  },
+  { title: "Barang Masuk", href: "/incoming", icon: TrendingUp, description: "Supply Management" },
+  { title: "Barang Keluar", href: "/outgoing", icon: TrendingDown, description: "Demand Management" },
 ];
 
 const adminNavigation = [
-  {
-    title: "Pesanan Klien",
-    href: "/order-clients",
-    icon: TrendingUp,
-    description: "Clients Order",
-  },
-  {
-    title: "User Management",
-    href: "/users",
-    icon: Users,
-    description: "Kelola Pengguna",
-  },
-  {
-    title: "Pengaturan",
-    href: "/settings",
-    icon: Settings,
-    description: "System Settings",
-  },
+  { title: "Pesanan Klien", href: "/order-clients", icon: TrendingUp, description: "Clients Order" },
+  { title: "User Management", href: "/users", icon: Users, description: "Kelola Pengguna" },
+  { title: "Pengaturan", href: "/settings", icon: Settings, description: "System Settings" },
 ];
 
 const financeNavigation = [
-  {
-    title: "Uang Masuk",
-    href: "/finance-in",
-    icon: DollarSign,
-    description: "Revenue Tracking",
-  },
-  {
-    title: "Uang Keluar",
-    href: "/finance-out",
-    icon: CreditCard,
-    description: "Expense Tracking",
-  },
-  {
-    title: "Bank",
-    href: "/manage-banks",
-    icon: Landmark,
-    description: "Kelola Rekening Bank",
-  },
+  { title: "Uang Masuk", href: "/finance-in", icon: DollarSign, description: "Revenue Tracking" },
+  { title: "Uang Keluar", href: "/finance-out", icon: CreditCard, description: "Expense Tracking" },
+  { title: "Bank", href: "/manage-banks", icon: Landmark, description: "Kelola Rekening Bank" },
 ];
 
 export function AppSidebar() {
@@ -117,30 +62,18 @@ export function AppSidebar() {
     cn(
       "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-normal",
       "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-      isActive
-        ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-        : "text-sidebar-foreground",
+      isActive ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm" : "text-sidebar-foreground",
     );
 
-  const hasResponsibility = (code: string) =>
-    user?.responsibilities?.some((r) => r.code === code);
+  const hasResponsibility = (code: string) => user?.responsibilities?.some((r) => r.code === code);
 
   const navigate = useNavigate();
-  const leave = async () => {
-    logout();
-    navigate("/login");
-  };
+  const leave = async () => { logout(); navigate("/login"); };
   const { company } = useCompany();
 
   return (
-    <Sidebar
-      className={cn(
-        "transition-all duration-normal border-r border-sidebar-border bg-sidebar",
-        collapsed ? "w-14" : "w-64",
-      )}
-    >
+    <Sidebar className={cn("transition-all duration-normal border-r border-sidebar-border bg-sidebar", collapsed ? "w-14" : "w-64")}>
       <div className="flex h-full flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           {!collapsed && (
             <div className="flex items-center space-x-3">
@@ -148,9 +81,7 @@ export function AppSidebar() {
                 <img src={company?.image || ksmLogo} className="w-12" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-sidebar-foreground">
-                  {company?.name}
-                </h1>
+                <h1 className="text-lg font-bold text-sidebar-foreground">{company?.name}</h1>
                 <p className="text-xs text-sidebar-foreground/60">v1.0.1</p>
               </div>
             </div>
@@ -159,7 +90,6 @@ export function AppSidebar() {
         </div>
 
         <SidebarContent className="flex-1 px-3 py-4">
-          {/* Main Navigation */}
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Main</SidebarGroupLabel>}
             <SidebarGroupContent>
@@ -179,7 +109,6 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Warehouse */}
           {hasResponsibility("WAREHOUSE") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Gudang</SidebarGroupLabel>}
@@ -201,7 +130,6 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Finance */}
           {hasResponsibility("FINANCE") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Keuangan</SidebarGroupLabel>}
@@ -223,7 +151,6 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Admin */}
           {hasResponsibility("ADMIN") && (
             <SidebarGroup>
               {!collapsed && <SidebarGroupLabel>Admin</SidebarGroupLabel>}
@@ -246,16 +173,12 @@ export function AppSidebar() {
           )}
         </SidebarContent>
 
-        {/* Logout */}
         <div className="p-3 border-t border-sidebar-border">
           <Button
             variant="ghost"
             size={collapsed ? "icon" : "sm"}
             onClick={leave}
-            className={cn(
-              "w-full text-destructive hover:text-destructive hover:bg-destructive/10",
-              collapsed ? "h-8 w-8" : "justify-start",
-            )}
+            className={cn("w-full text-destructive hover:text-destructive hover:bg-destructive/10", collapsed ? "h-8 w-8" : "justify-start")}
           >
             <LogOut className={cn("h-4 w-4", !collapsed && "mr-2")} />
             {!collapsed && "Logout"}
