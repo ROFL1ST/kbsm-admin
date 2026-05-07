@@ -170,8 +170,8 @@ export default function EditInventoryStock() {
         is_best_seller: form?.is_best_seller ?? false,
         // New files (if any)
         path: imageFiles.length > 0 ? imageFiles : undefined,
-        // Existing URLs to keep (empty array = remove all existing)
-        path_exst: keptPictureUrls.length > 0 ? keptPictureUrls : undefined,
+        // Always send path_exst as array — empty array means "hapus semua existing"
+        path_exst: keptPictureUrls,
       });
 
       if (response?.status) {
