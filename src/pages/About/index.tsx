@@ -14,6 +14,34 @@ import {
 } from "@/contexts/About.Context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Default CTA kalau backend belum return field ini
+const DEFAULT_CTA = {
+  title_html: "",
+  subtitle_html: "",
+  cta_primary: { label: "", href: "" },
+  cta_secondary: { label: "", href: "" },
+};
+
+// Normalisasi data dari backend — pastikan cta selalu ada
+const normalizeAboutData = (data: AboutData): AboutData => ({
+  ...data,
+  cta: data.cta ?? DEFAULT_CTA,
+});
+
+// Parse messages dari response backend
+// messages bisa: string | { message: string; path: string[] }[]
+const parseResponseMessages = (messages: any): string => {
+  if (!messages) return "Terjadi kesalahan";
+  if (typeof messages === "string") return messages;
+  if (Array.isArray(messages)) {
+    return messages
+      .map((m) => (typeof m === "string" ? m : m?.message ?? ""))
+      .filter(Boolean)
+      .join(", ");
+  }
+  return String(messages);
+};
+
 export default function AboutPage() {
   const { aboutData, isLoading, getAbout, updateAbout } = useAbout();
   const { toast } = useToast();
@@ -28,8 +56,9 @@ export default function AboutPage() {
 
   useEffect(() => {
     if (aboutData) {
-      setForm(JSON.parse(JSON.stringify(aboutData)));
-      setOriginalForm(JSON.parse(JSON.stringify(aboutData)));
+      const normalized = normalizeAboutData(aboutData);
+      setForm(JSON.parse(JSON.stringify(normalized)));
+      setOriginalForm(JSON.parse(JSON.stringify(normalized)));
     }
   }, [aboutData]);
 
@@ -48,22 +77,29 @@ export default function AboutPage() {
     setIsSaving(true);
     try {
       const res = await updateAbout(form);
-      if (res?.status) {
+      if (res?.status === true) {
         toast({ title: "Berhasil", description: "Halaman About berhasil diperbarui" });
         setOriginalForm(JSON.parse(JSON.stringify(form)));
         setIsEditMode(false);
         getAbout();
       } else {
-        toast({ title: "Gagal", description: res?.messages || "Gagal menyimpan", variant: "destructive" });
+        // status: false — tampilkan pesan error dari backend
+        const errorMsg = parseResponseMessages(res?.messages);
+        toast({ title: "Gagal menyimpan", description: errorMsg, variant: "destructive" });
       }
-    } catch {
-      toast({ title: "Error", description: "Terjadi kesalahan saat menyimpan", variant: "destructive" });
+    } catch (err: any) {
+      // HTTP error (4xx/5xx) — coba parse dari axios error response
+      const axiosMessages = err?.response?.data?.messages;
+      const errorMsg = axiosMessages
+        ? parseResponseMessages(axiosMessages)
+        : "Terjadi kesalahan saat menyimpan";
+      toast({ title: "Error", description: errorMsg, variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
   };
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────────────
   const setHero = (key: string, val: string) =>
     setForm((prev) => prev && { ...prev, hero: { ...prev.hero, [key]: val } });
 
@@ -130,13 +166,13 @@ export default function AboutPage() {
 
   const setCta = (key: string, val: string) =>
     setForm((prev) =>
-      prev ? { ...prev, cta: { ...(prev.cta ?? { title_html: "", subtitle_html: "", cta_primary: { label: "", href: "" }, cta_secondary: { label: "", href: "" } }), [key]: val } } : prev
+      prev ? { ...prev, cta: { ...(prev.cta ?? DEFAULT_CTA), [key]: val } } : prev
     );
 
   const setCtaBtn = (type: "cta_primary" | "cta_secondary", key: string, val: string) =>
     setForm((prev) => {
       if (!prev) return prev;
-      const base = prev.cta ?? { title_html: "", subtitle_html: "", cta_primary: { label: "", href: "" }, cta_secondary: { label: "", href: "" } };
+      const base = prev.cta ?? DEFAULT_CTA;
       return { ...prev, cta: { ...base, [type]: { ...base[type], [key]: val } } };
     });
 
@@ -184,7 +220,7 @@ export default function AboutPage() {
           <TabsTrigger value="cta">CTA</TabsTrigger>
         </TabsList>
 
-        {/* ── HERO ───────────────────────────────────────────────────────────────────────────── */}
+        {/* ── HERO ── */}
         <TabsContent value="hero" className="mt-4">
           <Card>
             <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
@@ -203,7 +239,6 @@ export default function AboutPage() {
                   <RichTextEditor value={form.hero.subtitle_html} onChange={(v) => setHero("subtitle_html", v)} readOnly={!isEditMode} placeholder="Subtitle hero..." />
                 </div>
               </div>
-
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="border-dashed">
                   <CardHeader><CardTitle className="text-sm">CTA Primer</CardTitle></CardHeader>
@@ -236,7 +271,7 @@ export default function AboutPage() {
           </Card>
         </TabsContent>
 
-        {/* ── BRAND STORY ────────────────────────────────────────────────────────────────── */}
+        {/* ── BRAND STORY ── */}
         <TabsContent value="brand_story" className="mt-4">
           <Card>
             <CardHeader><CardTitle>Brand Story Section</CardTitle></CardHeader>
@@ -263,8 +298,6 @@ export default function AboutPage() {
                   <RichTextEditor value={form.brand_story.content_html} onChange={(v) => setBrandStory("content_html", v)} readOnly={!isEditMode} placeholder="Cerita brand..." />
                 </div>
               </div>
-
-              {/* Tags */}
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <div className="flex flex-wrap gap-2">
@@ -300,7 +333,7 @@ export default function AboutPage() {
           </Card>
         </TabsContent>
 
-        {/* ── STATS ────────────────────────────────────────────────────────────────────────── */}
+        {/* ── STATS ── */}
         <TabsContent value="stats" className="mt-4">
           <Card>
             <CardHeader><CardTitle>Stats Section</CardTitle></CardHeader>
@@ -315,7 +348,6 @@ export default function AboutPage() {
                   <Input value={form.stats.title_html} disabled={!isEditMode} onChange={(e) => setStats("title_html", e.target.value)} />
                 </div>
               </div>
-
               <div className="space-y-3">
                 <Label>Item Statistik</Label>
                 {form.stats.items.map((item, idx) => (
@@ -342,6 +374,7 @@ export default function AboutPage() {
                         )}
                       </div>
                     </div>
+
                   </div>
                 ))}
                 {isEditMode && (
@@ -354,7 +387,7 @@ export default function AboutPage() {
           </Card>
         </TabsContent>
 
-        {/* ── VALUES ───────────────────────────────────────────────────────────────────────── */}
+        {/* ── VALUES ── */}
         <TabsContent value="values" className="mt-4">
           <Card>
             <CardHeader><CardTitle>Values Section</CardTitle></CardHeader>
@@ -373,7 +406,6 @@ export default function AboutPage() {
                   <RichTextEditor value={form.values.subtitle_html} onChange={(v) => setValues("subtitle_html", v)} readOnly={!isEditMode} placeholder="Subtitle values..." />
                 </div>
               </div>
-
               <div className="space-y-4">
                 <Label>Item Values</Label>
                 {form.values.items.map((item, idx) => (
@@ -416,7 +448,7 @@ export default function AboutPage() {
           </Card>
         </TabsContent>
 
-        {/* ── CTA ──────────────────────────────────────────────────────────────────────────── */}
+        {/* ── CTA ── */}
         <TabsContent value="cta" className="mt-4">
           <Card>
             <CardHeader><CardTitle>CTA Section</CardTitle></CardHeader>
