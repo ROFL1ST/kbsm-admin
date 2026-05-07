@@ -14,7 +14,6 @@ import {
 } from "@/contexts/About.Context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Default CTA kalau backend belum return field ini
 const DEFAULT_CTA = {
   title_html: "",
   subtitle_html: "",
@@ -22,14 +21,11 @@ const DEFAULT_CTA = {
   cta_secondary: { label: "", href: "" },
 };
 
-// Normalisasi data dari backend — pastikan cta selalu ada
 const normalizeAboutData = (data: AboutData): AboutData => ({
   ...data,
   cta: data.cta ?? DEFAULT_CTA,
 });
 
-// Parse messages dari response backend
-// messages bisa: string | { message: string; path: string[] }[]
 const parseResponseMessages = (messages: any): string => {
   if (!messages) return "Terjadi kesalahan";
   if (typeof messages === "string") return messages;
@@ -50,9 +46,7 @@ export default function AboutPage() {
   const [form, setForm] = useState<AboutData | null>(null);
   const [originalForm, setOriginalForm] = useState<AboutData | null>(null);
 
-  useEffect(() => {
-    getAbout();
-  }, []);
+  useEffect(() => { getAbout(); }, []);
 
   useEffect(() => {
     if (aboutData) {
@@ -83,16 +77,12 @@ export default function AboutPage() {
         setIsEditMode(false);
         getAbout();
       } else {
-        // status: false — tampilkan pesan error dari backend
         const errorMsg = parseResponseMessages(res?.messages);
         toast({ title: "Gagal menyimpan", description: errorMsg, variant: "destructive" });
       }
     } catch (err: any) {
-      // HTTP error (4xx/5xx) — coba parse dari axios error response
       const axiosMessages = err?.response?.data?.messages;
-      const errorMsg = axiosMessages
-        ? parseResponseMessages(axiosMessages)
-        : "Terjadi kesalahan saat menyimpan";
+      const errorMsg = axiosMessages ? parseResponseMessages(axiosMessages) : "Terjadi kesalahan saat menyimpan";
       toast({ title: "Error", description: errorMsg, variant: "destructive" });
     } finally {
       setIsSaving(false);
@@ -105,10 +95,7 @@ export default function AboutPage() {
 
   const setHeroCta = (type: "cta_primary" | "cta_secondary", key: string, val: string) =>
     setForm((prev) =>
-      prev && {
-        ...prev,
-        hero: { ...prev.hero, [type]: { ...prev.hero[type], [key]: val } },
-      }
+      prev && { ...prev, hero: { ...prev.hero, [type]: { ...prev.hero[type], [key]: val } } }
     );
 
   const setBrandStory = (key: string, val: string | string[]) =>
@@ -127,16 +114,12 @@ export default function AboutPage() {
 
   const addStatItem = () =>
     setForm((prev) =>
-      prev
-        ? { ...prev, stats: { ...prev.stats, items: [...prev.stats.items, { value: 0, suffix: "+", label: "" }] } }
-        : prev
+      prev ? { ...prev, stats: { ...prev.stats, items: [...prev.stats.items, { value: 0, suffix: "+", label: "" }] } } : prev
     );
 
   const removeStatItem = (idx: number) =>
     setForm((prev) =>
-      prev
-        ? { ...prev, stats: { ...prev.stats, items: prev.stats.items.filter((_, i) => i !== idx) } }
-        : prev
+      prev ? { ...prev, stats: { ...prev.stats, items: prev.stats.items.filter((_, i) => i !== idx) } } : prev
     );
 
   const setValues = (key: string, val: string) =>
@@ -152,16 +135,12 @@ export default function AboutPage() {
 
   const addValueItem = () =>
     setForm((prev) =>
-      prev
-        ? { ...prev, values: { ...prev.values, items: [...prev.values.items, { icon: "", title: "", description_html: "" }] } }
-        : prev
+      prev ? { ...prev, values: { ...prev.values, items: [...prev.values.items, { icon: "", title: "", description_html: "" }] } } : prev
     );
 
   const removeValueItem = (idx: number) =>
     setForm((prev) =>
-      prev
-        ? { ...prev, values: { ...prev.values, items: prev.values.items.filter((_, i) => i !== idx) } }
-        : prev
+      prev ? { ...prev, values: { ...prev.values, items: prev.values.items.filter((_, i) => i !== idx) } } : prev
     );
 
   const setCta = (key: string, val: string) =>
@@ -232,7 +211,13 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <Input value={form.hero.title_html} disabled={!isEditMode} onChange={(e) => setHero("title_html", e.target.value)} placeholder="Gunakan tag HTML seperti <em>, <br />" />
+                  <RichTextEditor
+                    inline
+                    value={form.hero.title_html}
+                    onChange={(v) => setHero("title_html", v)}
+                    readOnly={!isEditMode}
+                    placeholder="Judul hero..."
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Subtitle</Label>
@@ -291,7 +276,13 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <Input value={form.brand_story.title_html} disabled={!isEditMode} onChange={(e) => setBrandStory("title_html", e.target.value)} />
+                  <RichTextEditor
+                    inline
+                    value={form.brand_story.title_html}
+                    onChange={(v) => setBrandStory("title_html", v)}
+                    readOnly={!isEditMode}
+                    placeholder="Judul brand story..."
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Konten</Label>
@@ -345,7 +336,13 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <Input value={form.stats.title_html} disabled={!isEditMode} onChange={(e) => setStats("title_html", e.target.value)} />
+                  <RichTextEditor
+                    inline
+                    value={form.stats.title_html}
+                    onChange={(v) => setStats("title_html", v)}
+                    readOnly={!isEditMode}
+                    placeholder="Judul stats..."
+                  />
                 </div>
               </div>
               <div className="space-y-3">
@@ -374,7 +371,6 @@ export default function AboutPage() {
                         )}
                       </div>
                     </div>
-
                   </div>
                 ))}
                 {isEditMode && (
@@ -399,7 +395,13 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <Input value={form.values.title_html} disabled={!isEditMode} onChange={(e) => setValues("title_html", e.target.value)} />
+                  <RichTextEditor
+                    inline
+                    value={form.values.title_html}
+                    onChange={(v) => setValues("title_html", v)}
+                    readOnly={!isEditMode}
+                    placeholder="Judul values..."
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Subtitle</Label>
@@ -455,7 +457,13 @@ export default function AboutPage() {
             <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label>Title (HTML)</Label>
-                <Input value={form.cta?.title_html ?? ""} disabled={!isEditMode} onChange={(e) => setCta("title_html", e.target.value)} />
+                <RichTextEditor
+                  inline
+                  value={form.cta?.title_html ?? ""}
+                  onChange={(v) => setCta("title_html", v)}
+                  readOnly={!isEditMode}
+                  placeholder="Judul CTA..."
+                />
               </div>
               <div className="space-y-2">
                 <Label>Subtitle</Label>
