@@ -13,6 +13,7 @@ import {
   useAbout,
 } from "@/contexts/About.Context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_CTA = {
   title_html: "",
@@ -36,6 +37,33 @@ const parseResponseMessages = (messages: any): string => {
       .join(", ");
   }
   return String(messages);
+};
+
+// Validasi: harus diawali '/' dan tidak ada spasi
+const isValidPath = (val: string) => val === "" || /^\/\S*$/.test(val);
+
+// Komponen input href dengan validasi path
+interface HrefInputProps {
+  value: string;
+  disabled: boolean;
+  onChange: (val: string) => void;
+}
+const HrefInput = ({ value, disabled, onChange }: HrefInputProps) => {
+  const isInvalid = !disabled && value !== "" && !isValidPath(value);
+  return (
+    <div className="space-y-1">
+      <Input
+        value={value}
+        disabled={disabled}
+        placeholder="/contoh-path"
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(isInvalid && "border-destructive focus-visible:ring-destructive")}
+      />
+      {isInvalid && (
+        <p className="text-xs text-destructive">Harus berupa path yang diawali dengan '/' dan tanpa spasi, contoh: /shop</p>
+      )}
+    </div>
+  );
 };
 
 export default function AboutPage() {
@@ -66,8 +94,27 @@ export default function AboutPage() {
     }
   };
 
+  // Kumpulkan semua href dan validasi sebelum submit
+  const collectHrefs = (f: AboutData): string[] => [
+    f.hero.cta_primary.href,
+    f.hero.cta_secondary.href,
+    f.cta?.cta_primary?.href ?? "",
+    f.cta?.cta_secondary?.href ?? "",
+  ];
+
   const handleSave = async () => {
     if (!form) return;
+
+    const invalidHrefs = collectHrefs(form).filter((h) => h !== "" && !isValidPath(h));
+    if (invalidHrefs.length > 0) {
+      toast({
+        title: "Validasi gagal",
+        description: `Href tidak valid: ${invalidHrefs.join(", ")}. Harus diawali '/' tanpa spasi.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const res = await updateAbout(form);
@@ -211,13 +258,7 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <RichTextEditor
-                    inline
-                    value={form.hero.title_html}
-                    onChange={(v) => setHero("title_html", v)}
-                    readOnly={!isEditMode}
-                    placeholder="Judul hero..."
-                  />
+                  <RichTextEditor inline value={form.hero.title_html} onChange={(v) => setHero("title_html", v)} readOnly={!isEditMode} placeholder="Judul hero..." />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Subtitle</Label>
@@ -234,7 +275,11 @@ export default function AboutPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Href</Label>
-                      <Input value={form.hero.cta_primary.href} disabled={!isEditMode} onChange={(e) => setHeroCta("cta_primary", "href", e.target.value)} />
+                      <HrefInput
+                        value={form.hero.cta_primary.href}
+                        disabled={!isEditMode}
+                        onChange={(v) => setHeroCta("cta_primary", "href", v)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -247,7 +292,11 @@ export default function AboutPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Href</Label>
-                      <Input value={form.hero.cta_secondary.href} disabled={!isEditMode} onChange={(e) => setHeroCta("cta_secondary", "href", e.target.value)} />
+                      <HrefInput
+                        value={form.hero.cta_secondary.href}
+                        disabled={!isEditMode}
+                        onChange={(v) => setHeroCta("cta_secondary", "href", v)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -276,13 +325,7 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <RichTextEditor
-                    inline
-                    value={form.brand_story.title_html}
-                    onChange={(v) => setBrandStory("title_html", v)}
-                    readOnly={!isEditMode}
-                    placeholder="Judul brand story..."
-                  />
+                  <RichTextEditor inline value={form.brand_story.title_html} onChange={(v) => setBrandStory("title_html", v)} readOnly={!isEditMode} placeholder="Judul brand story..." />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Konten</Label>
@@ -336,13 +379,7 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <RichTextEditor
-                    inline
-                    value={form.stats.title_html}
-                    onChange={(v) => setStats("title_html", v)}
-                    readOnly={!isEditMode}
-                    placeholder="Judul stats..."
-                  />
+                  <RichTextEditor inline value={form.stats.title_html} onChange={(v) => setStats("title_html", v)} readOnly={!isEditMode} placeholder="Judul stats..." />
                 </div>
               </div>
               <div className="space-y-3">
@@ -395,13 +432,7 @@ export default function AboutPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Title (HTML)</Label>
-                  <RichTextEditor
-                    inline
-                    value={form.values.title_html}
-                    onChange={(v) => setValues("title_html", v)}
-                    readOnly={!isEditMode}
-                    placeholder="Judul values..."
-                  />
+                  <RichTextEditor inline value={form.values.title_html} onChange={(v) => setValues("title_html", v)} readOnly={!isEditMode} placeholder="Judul values..." />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Subtitle</Label>
@@ -457,13 +488,7 @@ export default function AboutPage() {
             <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label>Title (HTML)</Label>
-                <RichTextEditor
-                  inline
-                  value={form.cta?.title_html ?? ""}
-                  onChange={(v) => setCta("title_html", v)}
-                  readOnly={!isEditMode}
-                  placeholder="Judul CTA..."
-                />
+                <RichTextEditor inline value={form.cta?.title_html ?? ""} onChange={(v) => setCta("title_html", v)} readOnly={!isEditMode} placeholder="Judul CTA..." />
               </div>
               <div className="space-y-2">
                 <Label>Subtitle</Label>
@@ -479,7 +504,11 @@ export default function AboutPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Href</Label>
-                      <Input value={form.cta?.cta_primary?.href ?? ""} disabled={!isEditMode} onChange={(e) => setCtaBtn("cta_primary", "href", e.target.value)} />
+                      <HrefInput
+                        value={form.cta?.cta_primary?.href ?? ""}
+                        disabled={!isEditMode}
+                        onChange={(v) => setCtaBtn("cta_primary", "href", v)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -492,7 +521,11 @@ export default function AboutPage() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Href</Label>
-                      <Input value={form.cta?.cta_secondary?.href ?? ""} disabled={!isEditMode} onChange={(e) => setCtaBtn("cta_secondary", "href", e.target.value)} />
+                      <HrefInput
+                        value={form.cta?.cta_secondary?.href ?? ""}
+                        disabled={!isEditMode}
+                        onChange={(v) => setCtaBtn("cta_secondary", "href", v)}
+                      />
                     </div>
                   </CardContent>
                 </Card>
