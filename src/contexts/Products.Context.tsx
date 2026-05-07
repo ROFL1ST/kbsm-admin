@@ -158,10 +158,11 @@ export interface UpdateProductsInventoryKey {
   quantity: number;
   category_id: number;
   status?: string;
+  /** New image files to upload */
   path?: File | File[];
+  /** Existing image URLs to keep (omit or pass empty to remove all existing) */
+  path_exst?: string | string[];
   is_best_seller: boolean;
-  existing_picture_ids?: number[];
-  deleted_picture_ids?: number[];
 }
 
 // ─── Detail form shape (used by Create/Edit pages) ───────────────────────────
@@ -393,6 +394,8 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       formData.append("category_id", String(params.category_id));
       formData.append("is_best_seller", String(params.is_best_seller));
       if (params.status) formData.append("status", params.status);
+
+      // New image files
       if (params.path) {
         if (Array.isArray(params.path)) {
           params.path.forEach((file) => formData.append("path", file));
@@ -400,15 +403,14 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           formData.append("path", params.path);
         }
       }
-      if (params.existing_picture_ids && params.existing_picture_ids.length > 0) {
-        params.existing_picture_ids.forEach((id) =>
-          formData.append("existing_picture_ids[]", String(id))
-        );
-      }
-      if (params.deleted_picture_ids && params.deleted_picture_ids.length > 0) {
-        params.deleted_picture_ids.forEach((id) =>
-          formData.append("deleted_picture_ids[]", String(id))
-        );
+
+      // Existing image URLs to keep
+      if (params.path_exst) {
+        if (Array.isArray(params.path_exst)) {
+          params.path_exst.forEach((url) => formData.append("path_exst", url));
+        } else {
+          formData.append("path_exst", params.path_exst);
+        }
       }
 
       const response = await API.patch<ApiResponse>("/products", formData, {
