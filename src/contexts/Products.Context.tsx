@@ -161,7 +161,7 @@ export interface UpdateProductsInventoryKey {
   status?: string;
   /** New image files to upload */
   path?: File | File[];
-  /** Existing image URLs to keep — always pass as array (empty = hapus semua) */
+  /** Existing image URLs to keep — always pass as array (empty = hapus semua existing) */
   path_exst: string[];
   is_best_seller: boolean;
 }
@@ -405,9 +405,14 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
-      // Existing image URLs — kirim dengan key "path_exst[]" (bracket notation)
-      // supaya multer/busboy di backend parse sebagai array, bukan string tunggal.
-      params.path_exst.forEach((url) => formData.append("path_exst[]", url));
+      // Existing image URLs — bracket notation supaya backend parse sebagai array.
+      // Kalau kosong (hapus semua existing), kirim satu entry string kosong
+      // agar field path_exst[] tetap hadir di FormData dan backend tahu harus clear.
+      if (params.path_exst.length > 0) {
+        params.path_exst.forEach((url) => formData.append("path_exst[]", url));
+      } else {
+        formData.append("path_exst[]", "");
+      }
 
       const response = await API.patch<ApiResponse>("/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
