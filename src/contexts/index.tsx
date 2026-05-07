@@ -13,6 +13,7 @@ import { BanksProvider } from "./Banks.Context";
 import { DiscountsProvider } from "./Discounts.Context";
 import { ReviewsProvider } from "./Reviews.Context";
 import { BlogProvider } from "./Blog.Context";
+import { AboutProvider } from "./About.Context";
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -31,7 +32,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
                         <ParameterProvider>
                           <CompanyProvider>
                             <FinanceProvider>
-                              <BlogProvider>{children}</BlogProvider>
+                              <BlogProvider>
+                                <AboutProvider>{children}</AboutProvider>
+                              </BlogProvider>
                             </FinanceProvider>
                           </CompanyProvider>
                         </ParameterProvider>

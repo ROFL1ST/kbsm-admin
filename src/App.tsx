@@ -79,6 +79,7 @@ import BlogPage from "./pages/Blog";
 import BlogCategoryPage from "./pages/Blog/CategoryBlog";
 import CreateBlogPage from "./pages/Blog/Action/Create";
 import EditBlogPage from "./pages/Blog/Action/Edit";
+import AboutPage from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const routeResponsibilities: Record<string, string[]> = {
   "/blog/category": [],
   "/blog/create": [],
   "/blog/edit": [],
+  "/about": [],
 
   // 🧑‍💼 Admin
   "/users": ["ADMIN"],
@@ -117,12 +119,12 @@ const routeResponsibilities: Record<string, string[]> = {
   "/vendors/edit": ["PURCHASING"],
   "/vendors/create": ["PURCHASING"],
 
-  // 🧾 Sales
+  // 🧭 Sales
   "/po-clients": ["SALES"],
   "/po-clients/edit": ["SALES"],
   "/po-clients/generate-po": ["SALES"],
 
-  // 🧾 Collection
+  // 🧭 Collection
   "/po-client-collections": ["COLLECTION", "SALES"],
 
   // 🚚 Warehouse / Logistik
@@ -267,6 +269,9 @@ const App = () => (
                 <Route path="blog/category" element={<BlogCategoryPage />} />
                 <Route path="blog/create" element={<CreateBlogPage />} />
                 <Route path="blog/edit" element={<EditBlogPage />} />
+
+                {/* About CMS */}
+                <Route path="about" element={<AboutPage />} />
 
                 <Route path="outgoing" element={<ProductOuts />} />
                 <Route path="finance-in" element={<FinanceInPage />} />
