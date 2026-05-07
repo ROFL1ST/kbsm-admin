@@ -7,6 +7,7 @@ export interface ProductDetailUnit {
   id: number;
   product_id: number;
   product_detail_id: number;
+  product_unit_id: number;
   unit_code: string;
   hpp: number;
   price: number;
@@ -160,8 +161,8 @@ export interface UpdateProductsInventoryKey {
   status?: string;
   /** New image files to upload */
   path?: File | File[];
-  /** Existing image URLs to keep (omit or pass empty to remove all existing) */
-  path_exst?: string | string[];
+  /** Existing image URLs to keep — always pass as array (empty = hapus semua) */
+  path_exst: string[];
   is_best_seller: boolean;
 }
 
@@ -404,13 +405,14 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
-      // Existing image URLs to keep
-      if (params.path_exst) {
-        if (Array.isArray(params.path_exst)) {
-          params.path_exst.forEach((url) => formData.append("path_exst", url));
-        } else {
-          formData.append("path_exst", params.path_exst);
-        }
+      // Existing image URLs — always append each URL individually as array entries.
+      // Wajib dikirim meski kosong agar backend tahu foto mana yang diretain.
+      // Kalau array kosong, kirim satu entry string kosong supaya field tetap hadir
+      // dan backend bisa parse sebagai array.
+      if (params.path_exst.length > 0) {
+        params.path_exst.forEach((url) => formData.append("path_exst", url));
+      } else {
+        formData.append("path_exst", "");
       }
 
       const response = await API.patch<ApiResponse>("/products", formData, {
