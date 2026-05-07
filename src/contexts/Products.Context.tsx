@@ -160,6 +160,8 @@ export interface UpdateProductsInventoryKey {
   status?: string;
   path?: File | File[];
   is_best_seller: boolean;
+  existing_picture_ids?: number[];
+  deleted_picture_ids?: number[];
 }
 
 // ─── Detail form shape (used by Create/Edit pages) ───────────────────────────
@@ -397,6 +399,16 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } else {
           formData.append("path", params.path);
         }
+      }
+      if (params.existing_picture_ids && params.existing_picture_ids.length > 0) {
+        params.existing_picture_ids.forEach((id) =>
+          formData.append("existing_picture_ids[]", String(id))
+        );
+      }
+      if (params.deleted_picture_ids && params.deleted_picture_ids.length > 0) {
+        params.deleted_picture_ids.forEach((id) =>
+          formData.append("deleted_picture_ids[]", String(id))
+        );
       }
 
       const response = await API.patch<ApiResponse>("/products", formData, {

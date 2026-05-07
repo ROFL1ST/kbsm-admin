@@ -81,6 +81,7 @@ export default function EditInventoryStock() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingPictures, setExistingPictures] = useState<ProductPicture[]>([]);
+  const [deletedPictureIds, setDeletedPictureIds] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -121,6 +122,7 @@ export default function EditInventoryStock() {
         // Populate existing pictures from pictures array
         if (Array.isArray(data.pictures) && data.pictures.length > 0) {
           setExistingPictures(data.pictures);
+          setDeletedPictureIds([]);
         }
       }
     } catch (error) {
@@ -143,9 +145,17 @@ export default function EditInventoryStock() {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleRemoveExistingImage = (id: number) => {
+    setDeletedPictureIds((prev) => [...prev, id]);
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
+      const keptPictureIds = existingPictures
+        .filter((pic) => !deletedPictureIds.includes(pic.id))
+        .map((pic) => pic.id);
+
       const response = await updateInventory({
         product_id: form?.product_id,
         product_detail_id: form?.product_detail_id,
@@ -160,6 +170,8 @@ export default function EditInventoryStock() {
         status: form?.status,
         is_best_seller: form?.is_best_seller ?? false,
         path: imageFiles.length > 0 ? imageFiles : undefined,
+        existing_picture_ids: keptPictureIds,
+        deleted_picture_ids: deletedPictureIds,
       });
 
       if (response?.status) {
@@ -169,6 +181,7 @@ export default function EditInventoryStock() {
         setImageFiles([]);
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
+        setDeletedPictureIds([]);
         fetchDetailProduct();
       } else {
         const errorMessages = Array.isArray(response?.messages)
@@ -197,6 +210,7 @@ export default function EditInventoryStock() {
       setImageFiles([]);
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
       setImagePreviews([]);
+      setDeletedPictureIds([]);
       setIsEditMode(false);
     } else {
       setOriginalForm(form);
@@ -500,22 +514,33 @@ export default function EditInventoryStock() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Existing pictures from API */}
-            {existingPictures.length > 0 && (
+            {existingPictures.filter((pic) => !deletedPictureIds.includes(pic.id)).length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">Foto saat ini</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {existingPictures.map((pic) => (
-                    <div key={pic.id} className="relative">
-                      <img
-                        src={pic.path}
-                        alt={`product-${pic.id}`}
-                        className="w-full h-24 object-cover rounded-lg border border-primary/10"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                  ))}
+                  {existingPictures
+                    .filter((pic) => !deletedPictureIds.includes(pic.id))
+                    .map((pic) => (
+                      <div key={pic.id} className="relative group">
+                        <img
+                          src={pic.path}
+                          alt={`product-${pic.id}`}
+                          className="w-full h-24 object-cover rounded-lg border border-primary/10"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        {isEditMode && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingImage(pic.id)}
+                            className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
@@ -570,7 +595,7 @@ export default function EditInventoryStock() {
               </div>
             )}
 
-            {existingPictures.length === 0 && imagePreviews.length === 0 && (
+            {existingPictures.filter((pic) => !deletedPictureIds.includes(pic.id)).length === 0 && imagePreviews.length === 0 && (
               <p className="text-xs text-muted-foreground text-center">Belum ada foto produk</p>
             )}
           </CardContent>
