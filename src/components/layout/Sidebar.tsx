@@ -13,6 +13,7 @@ import {
   LogOut,
   Landmark,
   BookOpen,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const mainNavigation = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, description: "Overview & Analytics" },
   { title: "Inventori Barang", href: "/stock-list", icon: Package, description: "Kelola Inventori" },
   { title: "Blog", href: "/blog", icon: BookOpen, description: "Kelola Artikel & Konten" },
+  { title: "About", href: "/about", icon: Info, description: "CMS Halaman About" },
 ];
 
 const warehouseNavigation = [
