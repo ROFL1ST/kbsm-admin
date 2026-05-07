@@ -405,14 +405,9 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
-      // Existing image URLs — bracket notation supaya backend parse sebagai array.
-      // Kalau kosong (hapus semua existing), kirim satu entry string kosong
-      // agar field path_exst[] tetap hadir di FormData dan backend tahu harus clear.
-      if (params.path_exst.length > 0) {
-        params.path_exst.forEach((url) => formData.append("path_exst[]", url));
-      } else {
-        formData.append("path_exst[]", "");
-      }
+      // Kirim path_exst sebagai JSON string supaya backend selalu terima sebagai array
+      // contoh: '["https://...png", "https://...png"]' atau '[]' kalau hapus semua
+      formData.append("path_exst", JSON.stringify(params.path_exst));
 
       const response = await API.patch<ApiResponse>("/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
